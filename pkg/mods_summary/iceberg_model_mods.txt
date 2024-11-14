@@ -1,0 +1,14 @@
+79c79
+<            IF (ibFlag(ib_n).NE.3) 
+---
+>            IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0)) 
+86c86
+<            IF (ibFlag(ib_n).NE.3)
+---
+>            IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0))
+109a110,112
+> #ifdef ALLOW_CALVING_SCHEDULE
+>         CALL ICEBERG_CALVE_SCHEDULED ( myTime, myIter, myThid )
+> #else
+111a115
+> #endif

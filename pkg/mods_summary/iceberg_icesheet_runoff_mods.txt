@@ -1,0 +1,16 @@
+112,118c112,118
+< #ifdef ICEBERG_DIAG_ON
+<          WRITE(msgBuf,'(A, 2I, 2F8.3, I, 2F8.3)')
+<      &   'ICEBERG runoff: ', i2, j2, run_i,run_j,ibTileTmp,
+<      &     myXGlobalLo,myYGlobalLo
+<          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+<      &                    SQUEEZE_RIGHT, myThid )
+< #endif
+---
+> C#ifdef ICEBERG_DIAG_ON
+> C         WRITE(msgBuf,'(A, 2I, 2F8.3, I, 2F8.3)')
+> C     &   'ICEBERG runoff: ', i2, j2, run_i,run_j,ibTileTmp,
+> C     &     myXGlobalLo,myYGlobalLo
+> C         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+> C     &                    SQUEEZE_RIGHT, myThid )
+> C#endif

@@ -1,0 +1,36 @@
+11,12c11,12
+< C       pickup_iceberg.XXXXXXXXXX.data :: binary (15000x13) real*8
+< C       pickup_calving.XXXXXXXXXX.data :: binary (15x100) real*8
+---
+> C       pickup_iceberg.XXXXXXXXXX.data :: binary (NUMBER_OF_BERGSx13) real*8
+> C       pickup_calving.XXXXXXXXXX.data :: binary (15xCALVE_LOCS) real*8
+42c42
+<       _RL pickupIceberg (15000,13)
+---
+>       _RL pickupIceberg (NUMBER_OF_BERGS,13)
+46c46
+<       _RL pickupCalve(15,100)
+---
+>       _RL pickupCalve(15,CALVE_LOCS)
+56c56,58
+<        IBpickupSize = 15000*13*8
+---
+>        IBpickupSize = NUMBER_OF_BERGS*13*8
+> 
+> #ifndef ALLOW_CALVING_SCHEDULE
+59c61
+<        CVpickupSize = 15*100*8
+---
+>        CVpickupSize = 15*CALVE_LOCS*8
+60a63
+> #endif
+93a97
+> #ifndef ALLOW_CALVING_SCHEDULE
+146a151
+> #endif
+149d153
+< 
+242a247
+> #ifndef ALLOW_CALVING_SCHEDULE
+263a269
+> #endif

@@ -1,0 +1,27 @@
+366a367
+> 
+418c419,440
+< 
+---
+> C MWPRINT
+>       WRITE(msgBuf,'(A)') '-----------------------' 
+>       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>       WRITE(msgBuf,'(A)')
+>      &      'MWPRINT: IcebergListA'
+>       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>       DO n=1,NumCalvingLoc
+>       WRITE(msgBuf,'(F8.1, F8.1, F8.1, F8.1, F8.1, F8.1, F8.1)'),
+>      &   IcebergListA (1,n), IcebergListA (2,n), IcebergListA (3,n),
+>      &   IcebergListA (4,n), IcebergListA (5,n), IcebergListA (6,n),
+>      &   IcebergListA (7,n)
+>       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>       WRITE(msgBuf,'(A, F8.1, F8.1, F8.1, F8.1, F8.1, F8.1)'),
+>      &   '       ', IcebergListA (8,n), IcebergListA (9,n),
+>      &   IcebergListA (10,n), IcebergListA (11,n), 
+>      &   IcebergListA (12,n), IcebergListA (13,n)
+>       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>       ENDDO

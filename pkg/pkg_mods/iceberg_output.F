@@ -36,7 +36,7 @@ C     myThid :: my Thread Id number
 C     == Local variables ==
 C     IcebergOutput :: store all iceberg data for writing out
       CHARACTER(10) mystring
-      CHARACTER(34) ib_name
+      CHARACTER(31) ib_name
       CHARACTER*(MAX_LEN_MBUF) suff
       LOGICAL  DIFFERENT_MULTIPLE
       EXTERNAL DIFFERENT_MULTIPLE
@@ -46,6 +46,13 @@ C     IcebergOutput :: store all iceberg data for writing out
       INTEGER mUnit
       _RL IcebergOutput(15000,12)
       INTEGER IBOutSize
+#ifdef ALLOW_CALVING_OUTPUT
+      _RL CalvingOutput(15000,2)
+      CHARACTER(10) mystring2
+      CHARACTER(17) cv_name
+      INTEGER CVOutSize
+      INTEGER nnc
+#endif
 
 #ifdef WRITE_ICEBERG_DATA
 C----------------------------------------------------------------
@@ -79,7 +86,7 @@ C     If its time to write out then:
        IF (dumpFiles) THEN
         IF (ib_Tot.GT.0) THEN
          WRITE (mystring,'(I10.10)') myIter
-         ib_name = 'diags/icebergs/icebergs.' // mystring
+         ib_name = 'diags/iceberg/iceberg' // mystring
          _BARRIER
          WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', ib_name
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -176,25 +183,25 @@ C       Dump files and restart average computation if needed
 
         IF (dumpFiles) THEN  ! If time to dump files:
 C        Normalize by integrated time
-         DO bj = myByLo(myThid), myByHi(myThid)
-          DO bi = myBxLo(myThid), myBxHi(myThid)
-C#ifdef USE_OLD2008
-C           CALL TIMEAVE_NORMALIZ(IcebergMWater_Tave,
-C     &          Iceberg_TimeAveCounter,
-C     &          1,bi,bj,myThid)
-C           CALL TIMEAVE_NORMALIZ(IcebergLRunoff_Tave,
-C     &          Iceberg_TimeAveCounter,
-C     &          1,bi,bj,myThid)
-C#else
-C           CALL TIMEAVE_NORMALIZE(IcebergMWater_Tave,
-C     &          Iceberg_TimeAveCounter,
-C     &          1,bi,bj,myThid)
-C           CALL TIMEAVE_NORMALIZE(IcebergLRunoff_Tave,
-C     &          Iceberg_TimeAveCounter,
-C     &          1,bi,bj,myThid)
-C#endif
-          ENDDO
-         ENDDO
+!          DO bj = myByLo(myThid), myByHi(myThid)
+!           DO bi = myBxLo(myThid), myBxHi(myThid)
+! #ifdef USE_OLD2008
+!            CALL TIMEAVE_NORMALIZ(IcebergMWater_Tave,
+!      &          Iceberg_TimeAveCounter,
+!      &          1,bi,bj,myThid)
+!            CALL TIMEAVE_NORMALIZ(IcebergLRunoff_Tave,
+!      &          Iceberg_TimeAveCounter,
+!      &          1,bi,bj,myThid)
+! #else
+!            CALL TIMEAVE_NORMALIZE(IcebergMWater_Tave,
+!      &          Iceberg_TimeAveCounter,
+!      &          1,bi,bj,myThid)
+!            CALL TIMEAVE_NORMALIZE(IcebergLRunoff_Tave,
+!      &          Iceberg_TimeAveCounter,
+!      &          1,bi,bj,myThid)
+! #endif
+!           ENDDO
+!          ENDDO
 
 C        Write files
          WRITE(suff,'(I10.10)') myIter
@@ -207,14 +214,14 @@ C        Write files
          ENDIF
          _BARRIER
 
-CC        Reset averages to zero
-C         DO bj = myByLo(myThid), myByHi(myThid)
-C          DO bi = myBxLo(myThid), myBxHi(myThid)
-C           CALL TIMEAVE_RESET(IcebergMWater_Tave,1,bi,bj,myThid)
-C           CALL TIMEAVE_RESET(IcebergLRunoff_Tave,1,bi,bj,myThid)
-C           Iceberg_TimeAveCounter(1,bi,bj) = 0. _d 0
-C          ENDDO
-C         ENDDO
+! C        Reset averages to zero
+!          DO bj = myByLo(myThid), myByHi(myThid)
+!           DO bi = myBxLo(myThid), myBxHi(myThid)
+!            CALL TIMEAVE_RESET(IcebergMWater_Tave,1,bi,bj,myThid)
+!            CALL TIMEAVE_RESET(IcebergLRunoff_Tave,1,bi,bj,myThid)
+!            Iceberg_TimeAveCounter(1,bi,bj) = 0. _d 0
+!           ENDDO
+!          ENDDO
 
         ENDIF ! /* dumpFiles */
 
@@ -234,6 +241,106 @@ C     Clear values to avoid time accumulation
        ENDDO
       ENDDO
 
+C----------------------------------------------------------------
+C    PART III: Output calving list
+C----------------------------------------------------------------
+
+C MW implemented a variable called CalvingList
+C This list is size (15000,2) where the 15000 refers to all icebergs
+C which were calved and the 2 columns are the iceberg Id,
+C and the iteration number. The idea is to be able to track who
+C calved and when
+#ifdef ALLOW_CALVING_OUTPUT
+
+      IF (useSingleCpuIO) THEN
+C   Find out if I'm the master thread (and mpi process 0 IF useSingleCpuIO):
+          iAmDoingIO = MASTER_CPU_IO(myThid)
+
+C   Calculate size of IcebergOutput (real*8)
+            CVOutSize = 8*15000*5
+
+C   Check if its time to write output
+            IF ( myIter .NE. nIter0 ) THEN
+            dumpFiles = .FALSE.
+            dumpFiles =
+     &       DIFFERENT_MULTIPLE(ib_write_freq,myTime,deltaT)
+#ifdef ALLOW_CAL
+            IF ( useCAL ) THEN
+            CALL CAL_TIME2DUMP( ib_write_freq, deltaT,
+     U                        dumpFiles,
+     I                        myTime, myIter, myThid )
+            ENDIF
+#endif
+            ENDIF
+
+C     If its time to write out then:
+            IF (dumpFiles) THEN
+            WRITE (mystring2,'(I10.10)') myIter
+            cv_name = 'CALVED.' // mystring2
+            _BARRIER
+            WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', cv_name
+            CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,I10)')'ICEBERG: Total number of calved: ', 
+     &    cv_Tot
+            CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+! C     Gather calving data in to one array for writing
+            ! CalvingOutput(:,1) = CalvingList(:,1) ! id
+            ! CalvingOutput(:,2) = CalvingList(:,2) ! iteration number
+     
+C ---------------------------------------------------------------------
+C MWPRINT
+      WRITE(msgBuf,'(A)') '-----------------------' 
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A)')
+     &      'MWPRINT: CalvingList'
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      DO nnc=1,cv_Tot
+      WRITE(msgBuf,'(F8.1, F8.1)')
+     &   CalvingList (nnc, 1), CalvingList (nnc, 2)
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDDO
+
+C-    Assign a free unit number as the I/O channel for this subroutine
+            CALL MDSFINDUNIT( mUnit, myThid )
+            IF ( iAmDoingIO ) THEN  ! Only Master thread does writing
+            OPEN ( unit=mUnit, file=cv_name, status='replace',
+     &           form='unformatted', access='direct', recl=CVOutSize)
+            WRITE( mUnit, rec=1) (CalvingList)
+            CLOSE ( mUnit )
+            _BARRIER
+            ENDIF
+
+C     Reset the calving list
+      DO nnc=1,cv_Tot
+            CalvingList(nnc,1) = 0
+            CalvingList(nnc,2) = 0
+            CalvingList(nnc,3) = 0
+            CalvingList(nnc,4) = 0
+            CalvingList(nnc,5) = 0
+      ENDDO
+
+C     Reset the calving counter
+      cv_Tot = 0
+
+            ENDIF  ! end dump Files
+
+
+      ELSE 
+C      ifnot useSingleCpuIO then stop
+            WRITE(msgBuf,'(A)')
+     &  'SingleCpuIO needed for iceberg_output.F.... STOP'
+            CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+            STOP
+C      Another option is needed at some point
+      ENDIF
+
+#endif /* ALLOW_CALVING_OUTPUT */
 
       RETURN
       END

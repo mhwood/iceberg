@@ -1,0 +1,176 @@
+39c39
+<       CHARACTER(18) ib_name
+---
+>       CHARACTER(31) ib_name
+48a49,55
+> #ifdef ALLOW_CALVING_OUTPUT
+>       _RL CalvingOutput(15000,2)
+>       CHARACTER(10) mystring2
+>       CHARACTER(17) cv_name
+>       INTEGER CVOutSize
+>       INTEGER nnc
+> #endif
+82c89
+<          ib_name = 'ICEBERG.' // mystring
+---
+>          ib_name = 'diags/iceberg/iceberg' // mystring
+179,197c186,204
+<          DO bj = myByLo(myThid), myByHi(myThid)
+<           DO bi = myBxLo(myThid), myBxHi(myThid)
+< #ifdef USE_OLD2008
+<            CALL TIMEAVE_NORMALIZ(IcebergMWater_Tave,
+<      &          Iceberg_TimeAveCounter,
+<      &          1,bi,bj,myThid)
+<            CALL TIMEAVE_NORMALIZ(IcebergLRunoff_Tave,
+<      &          Iceberg_TimeAveCounter,
+<      &          1,bi,bj,myThid)
+< #else
+<            CALL TIMEAVE_NORMALIZE(IcebergMWater_Tave,
+<      &          Iceberg_TimeAveCounter,
+<      &          1,bi,bj,myThid)
+<            CALL TIMEAVE_NORMALIZE(IcebergLRunoff_Tave,
+<      &          Iceberg_TimeAveCounter,
+<      &          1,bi,bj,myThid)
+< #endif
+<           ENDDO
+<          ENDDO
+---
+> !          DO bj = myByLo(myThid), myByHi(myThid)
+> !           DO bi = myBxLo(myThid), myBxHi(myThid)
+> ! #ifdef USE_OLD2008
+> !            CALL TIMEAVE_NORMALIZ(IcebergMWater_Tave,
+> !      &          Iceberg_TimeAveCounter,
+> !      &          1,bi,bj,myThid)
+> !            CALL TIMEAVE_NORMALIZ(IcebergLRunoff_Tave,
+> !      &          Iceberg_TimeAveCounter,
+> !      &          1,bi,bj,myThid)
+> ! #else
+> !            CALL TIMEAVE_NORMALIZE(IcebergMWater_Tave,
+> !      &          Iceberg_TimeAveCounter,
+> !      &          1,bi,bj,myThid)
+> !            CALL TIMEAVE_NORMALIZE(IcebergLRunoff_Tave,
+> !      &          Iceberg_TimeAveCounter,
+> !      &          1,bi,bj,myThid)
+> ! #endif
+> !           ENDDO
+> !          ENDDO
+210,217c217,224
+< C        Reset averages to zero
+<          DO bj = myByLo(myThid), myByHi(myThid)
+<           DO bi = myBxLo(myThid), myBxHi(myThid)
+<            CALL TIMEAVE_RESET(IcebergMWater_Tave,1,bi,bj,myThid)
+<            CALL TIMEAVE_RESET(IcebergLRunoff_Tave,1,bi,bj,myThid)
+<            Iceberg_TimeAveCounter(1,bi,bj) = 0. _d 0
+<           ENDDO
+<          ENDDO
+---
+> ! C        Reset averages to zero
+> !          DO bj = myByLo(myThid), myByHi(myThid)
+> !           DO bi = myBxLo(myThid), myBxHi(myThid)
+> !            CALL TIMEAVE_RESET(IcebergMWater_Tave,1,bi,bj,myThid)
+> !            CALL TIMEAVE_RESET(IcebergLRunoff_Tave,1,bi,bj,myThid)
+> !            Iceberg_TimeAveCounter(1,bi,bj) = 0. _d 0
+> !           ENDDO
+> !          ENDDO
+236a244,246
+> C----------------------------------------------------------------
+> C    PART III: Output calving list
+> C----------------------------------------------------------------
+237a248,344
+> C MW implemented a variable called CalvingList
+> C This list is size (15000,2) where the 15000 refers to all icebergs
+> C which were calved and the 2 columns are the iceberg Id,
+> C and the iteration number. The idea is to be able to track who
+> C calved and when
+> #ifdef ALLOW_CALVING_OUTPUT
+> 
+>       IF (useSingleCpuIO) THEN
+> C   Find out if I'm the master thread (and mpi process 0 IF useSingleCpuIO):
+>           iAmDoingIO = MASTER_CPU_IO(myThid)
+> 
+> C   Calculate size of IcebergOutput (real*8)
+>             CVOutSize = 8*15000*5
+> 
+> C   Check if its time to write output
+>             IF ( myIter .NE. nIter0 ) THEN
+>             dumpFiles = .FALSE.
+>             dumpFiles =
+>      &       DIFFERENT_MULTIPLE(ib_write_freq,myTime,deltaT)
+> #ifdef ALLOW_CAL
+>             IF ( useCAL ) THEN
+>             CALL CAL_TIME2DUMP( ib_write_freq, deltaT,
+>      U                        dumpFiles,
+>      I                        myTime, myIter, myThid )
+>             ENDIF
+> #endif
+>             ENDIF
+> 
+> C     If its time to write out then:
+>             IF (dumpFiles) THEN
+>             WRITE (mystring2,'(I10.10)') myIter
+>             cv_name = 'CALVED.' // mystring2
+>             _BARRIER
+>             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', cv_name
+>             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>          WRITE(msgBuf,'(A,I10)')'ICEBERG: Total number of calved: ', 
+>      &    cv_Tot
+>             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+> ! C     Gather calving data in to one array for writing
+>             ! CalvingOutput(:,1) = CalvingList(:,1) ! id
+>             ! CalvingOutput(:,2) = CalvingList(:,2) ! iteration number
+>      
+> C ---------------------------------------------------------------------
+> C MWPRINT
+>       WRITE(msgBuf,'(A)') '-----------------------' 
+>       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>       WRITE(msgBuf,'(A)')
+>      &      'MWPRINT: CalvingList'
+>       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>       DO nnc=1,cv_Tot
+>       WRITE(msgBuf,'(F8.1, F8.1)')
+>      &   CalvingList (nnc, 1), CalvingList (nnc, 2)
+>       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>       ENDDO
+> 
+> C-    Assign a free unit number as the I/O channel for this subroutine
+>             CALL MDSFINDUNIT( mUnit, myThid )
+>             IF ( iAmDoingIO ) THEN  ! Only Master thread does writing
+>             OPEN ( unit=mUnit, file=cv_name, status='replace',
+>      &           form='unformatted', access='direct', recl=CVOutSize)
+>             WRITE( mUnit, rec=1) (CalvingList)
+>             CLOSE ( mUnit )
+>             _BARRIER
+>             ENDIF
+> 
+> C     Reset the calving list
+>       DO nnc=1,cv_Tot
+>             CalvingList(nnc,1) = 0
+>             CalvingList(nnc,2) = 0
+>             CalvingList(nnc,3) = 0
+>             CalvingList(nnc,4) = 0
+>             CalvingList(nnc,5) = 0
+>       ENDDO
+> 
+> C     Reset the calving counter
+>       cv_Tot = 0
+> 
+>             ENDIF  ! end dump Files
+> 
+> 
+>       ELSE 
+> C      ifnot useSingleCpuIO then stop
+>             WRITE(msgBuf,'(A)')
+>      &  'SingleCpuIO needed for iceberg_output.F.... STOP'
+>             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+>      &                    SQUEEZE_RIGHT, myThid )
+>             STOP
+> C      Another option is needed at some point
+>       ENDIF
+> 
+> #endif /* ALLOW_CALVING_OUTPUT */
+> 

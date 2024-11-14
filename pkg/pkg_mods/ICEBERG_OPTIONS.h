@@ -128,7 +128,7 @@ C--  Assume icebergs drift with sea-ice when sea-ice area GT 90%
 #define ICEBERGS_DRIFT_WITH_SEAICE
 
 C--  Let icebergs penetrate into sediment. Depth of scour set in data.iceberg
-#undef ALLOW_SCOURING
+#define ALLOW_SCOURING
 
 C------- SEDIMENT OPTIONS (Under Construction) -------
  
@@ -149,13 +149,31 @@ C     pickup files to be binary format.
 C--   Allow MITberg code to interface with older 2008 version of MITgcm
 #undef USE_OLD2008
 
-C------- MW OPTIONS -------
+C------- MW. OPTIONS -------
+
+C--- Allow reading inidivual size files
+#undef READ_INDIV_SIZE_FILES
+
 C--- Write out a calving list of all the icebergs that were calved
-C    since the last output (determine by the dump frequency)
+C    since the last output (determined by the dump frequency)
 C    This is implemented because the iceberg list only gives a snapshot of
 C    the current icebergs, some of which melt before the next output
 C    if they are very small
 #undef ALLOW_CALVING_OUTPUT
+
+C--- Allow calving in random size classes
+C    In previous formulation, calving was performed by
+C    selecting the smallest bergs first, which made a lot of 
+C    small bergs at the start of the year. This implemntation
+C    allows the random calving of bergs. A random seed can be 
+C    provided in the data.iceberg file so that results are reprouceable
+#undef ALLOW_RANDOM_CALVING
+
+C--- Allow calving schedule
+C    This option allows the user to prescribe an individual 
+C    calving schedule for each calving location giving
+C    the time of calving and the size of each berg
+#define ALLOW_CALVING_SCHEDULE
 
 #endif /* ICEBERG_OPTIONS_H */
 

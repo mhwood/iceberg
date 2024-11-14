@@ -1,0 +1,34 @@
+56a57,60
+> #ifdef ALLOW_CALVING_OUTPUT
+>       INTEGER max_cv_id, nnc
+> #endif
+> 
+164c168
+< #ifdef ICEBERG_DIAG_ON
+---
+> C#ifdef ICEBERG_DIAG_ON
+182c186
+< #endif 
+---
+> C#endif 
+184c188,205
+< C   Now increment Total Number of icebergs
+---
+> #ifdef ALLOW_CALVING_OUTPUT
+> C     Find calving row (to find the next one)
+>       max_cv_id = 0
+>       DO nnc = 0,cv_Tot-1
+>       IF (CalvingList(nnc,1).NE.0) THEN
+>         max_cv_id = nnc
+>       ENDIF
+>       ENDDO
+> 
+> C     Add the iceberg info to the next row
+> C     Assumption is that this can't exceed the 
+> C     total number of possible icebergs (seems fair)
+>       CalvingList(nnc+1,1) = ib_id(ib_n)
+>       CalvingList(nnc+1,2) = myIter
+> 
+> #endif
+> 
+> C   Now increment Total Number of 4

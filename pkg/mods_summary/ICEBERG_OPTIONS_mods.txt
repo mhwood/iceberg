@@ -1,0 +1,35 @@
+62c62
+< #define ALLOW_ICESHEET_RUNOFF
+---
+> #undef ALLOW_ICESHEET_RUNOFF
+150c150
+< #define USE_OLD2008
+---
+> #undef USE_OLD2008
+151a152,177
+> C------- MW. OPTIONS -------
+> 
+> C--- Allow reading inidivual size files
+> #undef READ_INDIV_SIZE_FILES
+> 
+> C--- Write out a calving list of all the icebergs that were calved
+> C    since the last output (determined by the dump frequency)
+> C    This is implemented because the iceberg list only gives a snapshot of
+> C    the current icebergs, some of which melt before the next output
+> C    if they are very small
+> #undef ALLOW_CALVING_OUTPUT
+> 
+> C--- Allow calving in random size classes
+> C    In previous formulation, calving was performed by
+> C    selecting the smallest bergs first, which made a lot of 
+> C    small bergs at the start of the year. This implemntation
+> C    allows the random calving of bergs. A random seed can be 
+> C    provided in the data.iceberg file so that results are reprouceable
+> #undef ALLOW_RANDOM_CALVING
+> 
+> C--- Allow calving schedule
+> C    This option allows the user to prescribe an individual 
+> C    calving schedule for each calving location giving
+> C    the time of calving and the size of each berg
+> #define ALLOW_CALVING_SCHEDULE
+> 

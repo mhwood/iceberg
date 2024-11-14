@@ -1,0 +1,9 @@
+92c92,93
+< C
+---
+> 
+> #ifndef ALLOW_CALVING_SCHEDULE
+98c99
+< 
+---
+> #endif /* ALLOW_CALVING_SCHEDULE */

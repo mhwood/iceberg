@@ -399,12 +399,20 @@ def add_iceberg_package_files(mitgcm_path):
 
     os.mkdir(os.path.join(mitgcm_path,'pkg','iceberg'))
 
-    for file_name in os.listdir(os.path.join('..','pkg','iceberg')):
+    for file_name in os.listdir(os.path.join('..','pkg','mitberg')):
         if file_name[-1]=='F':
-            shutil.copyfile(os.path.join('..', 'pkg', 'iceberg', file_name),
+            shutil.copyfile(os.path.join('..', 'pkg', 'mitberg', file_name),
                        os.path.join(mitgcm_path, 'pkg', 'iceberg', file_name))
         if file_name[-1]=='h':
-            shutil.copyfile(os.path.join('..', 'pkg', 'iceberg', file_name),
+            shutil.copyfile(os.path.join('..', 'pkg', 'mitberg', file_name),
+                       os.path.join(mitgcm_path, 'pkg', 'iceberg', file_name))
+
+    for file_name in os.listdir(os.path.join('..','pkg','pkg_mods')):
+        if file_name[-1]=='F':
+            shutil.copyfile(os.path.join('..', 'pkg', 'pkg_mods', file_name),
+                       os.path.join(mitgcm_path, 'pkg', 'iceberg', file_name))
+        if file_name[-1]=='h':
+            shutil.copyfile(os.path.join('..', 'pkg', 'pkg_mods', file_name),
                        os.path.join(mitgcm_path, 'pkg', 'iceberg', file_name))
 
 
