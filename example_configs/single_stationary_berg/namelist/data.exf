@@ -1,0 +1,67 @@
+# *********************
+# External Forcing Data
+# *********************
+
+ &EXF_NML_01
+ useAtmWind        = .TRUE.,
+#
+ exf_albedo        = 0.1,
+# useExfZenIncoming = .TRUE., 
+# select_ZenAlbedo  = 1,
+#
+ ocean_emissivity = 0.97,
+ ice_emissivity = 0.95,
+ snow_emissivity = 0.95,
+#
+ exf_iprec         = 32,
+ exf_yftype        = 'RL',
+ useExfYearlyFields= .TRUE.,
+ useExfCheckRange  = .FALSE.,
+ /
+
+ &EXF_NML_02
+ uwindfile         = 'exf/Uwind',
+ vwindfile         = 'exf/Vwind',
+ atempfile         = 'exf/Atemp',
+ swdownfile        = 'exf/Swdown',
+ lwdownfile        = 'exf/Lwdown',
+ areamaskfile      = 'exf/SIarea',
+#
+ atempstartdate1   = 19920101,
+ atempstartdate2   = 000000,
+ atempperiod       = 21600.0,
+#
+ uwindstartdate1   = 19920101,
+ uwindstartdate2   = 030000,
+ uwindperiod       = 21600.0,
+#
+ vwindstartdate1   = 19920101,
+ vwindstartdate2   = 030000,
+ vwindperiod       = 21600.0,
+#
+ swdownstartdate1  = 19920101,
+ swdownstartdate2  = 030000,
+ swdownperiod      = 21600.0,
+#
+ lwdownstartdate1  = 19920101,
+ lwdownstartdate2  = 030000,
+ lwdownperiod      = 21600.0,
+#
+ areamaskstartdate1  = 19920101,
+ areamaskstartdate2  = 030000,
+ areamaskperiod      = 21600.0,
+#
+ /
+
+
+ &EXF_NML_03
+ /
+
+ &EXF_NML_04
+ uwind_interpMethod = 0,
+ vwind_interpMethod = 0,
+ atemp_interpMethod = 0,
+ swdown_interpMethod = 0,
+ lwdown_interpMethod = 0,
+ areamask_interpMethod = 0,
+ /

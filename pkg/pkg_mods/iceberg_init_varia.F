@@ -31,28 +31,31 @@ C     myThid - thread number for this instance of the routine.
 C     == Local arguments ==
       CHARACTER*(MAX_LEN_MBUF) msgBuf
 
+#ifdef ICEBERG_DIAG_ON
       WRITE(msgBuf,'(A)') 'ICEBERG: iceberg_init_varia.F'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
+#endif
 
 C     Summarize iceberg model options in STDOUT
-      CALL ICEBERG_SUMMARY (myThid)
+C      CALL ICEBERG_SUMMARY (myThid)
 
-C     Set various global iceberg model parameter to zero
-C     or default.       
+C     Set various global iceberg model parameters to zero    
       ib_Tot                =  0
+      ib_tile(:)            =  0
       ib_i(:)               =  0. _d 0
       ib_j(:)               =  0. _d 0
-      ib_wth(:)             = 200.
-      ib_thk(:)             = 250.
-      CalveStart            = 0. _d 0
-      ib_scale(:)           = 0. _d 0
-      calve_slab_counter(:) = 0. _d 0
-      ib_calve_counter(:)   = 0. _d 0
-      ibFlag(:)             = 0
+      ib_wth(:)             = 0. _d 0
+      ib_lth(:)             = 0. _d 0
+      ib_thk(:)             = 0. _d 0
+      ib_dft(:)             = 0. _d 0
+      ib_fbd(:)             = 0. _d 0
       ib_uVel(:)            = 0. _d 0
       ib_vVel(:)            = 0. _d 0
+      ibFlag(:)             = 0
       ib_source(:)          = 0. _d 0
+      ib_scale(:)           = 0. _d 0
+      calve_slab_counter(:) = 0. _d 0
 
 C     Set global freshwater array to zeros 
       DO bj=myByLo(myThid),myByHi(myThid)
@@ -60,7 +63,6 @@ C     Set global freshwater array to zeros
         DO j=1-OLy,sNy+OLy
          DO i=1-OLx,sNx+OLx
           IcebergMeltWater(i,j,bi,bj) = 0. _d 0
-          IcebergLiqRunoff(i,j,bi,bj) = 0. _d 0
          ENDDO
         ENDDO
        ENDDO
@@ -73,77 +75,79 @@ C         Read iceberg locations from file
 C     ------------------------------------------
 C
 C      Various options
-C      o if Calving is turned on then creating IcebergListA
 C      o if this is not the first time step (i.e. niter0.NE.0) 
 C        and we are reading an Iceberg pickup then call ICEBERG_READ_PICKUP
 C      o if calving is turned OFF and an initial location file
 C        is specified:
 C         i)  If niter0=0 (i.e. first time step) or useIcebergPick = FALSE
 C             then read initial location file.
-C        ii)  If useIcebergPick = TRUE then only read IcebergPickup, (i.e. no not
+C        ii)  If useIcebergPick = TRUE then only read IcebergPickup, (i.e. do not
 C             read initial location file)
 C
 
 #ifdef ALLOW_ICEBERG_CALVING 
+
+#ifdef ICEBERG_DIAG_ON
       WRITE(msgBuf,'(A)')
      &     'ICEBERG: Calving switched ON'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
+#endif
 
-#ifndef ALLOW_CALVING_SCHEDULE
-      WRITE(msgBuf,'(A)')
-     &      'ICEBERG: creating IcebergListA'
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT , myThid)
-       CALL ICEBERG_CREATE_LISTA (myThid)
-#endif /* ALLOW_CALVING_SCHEDULE */
       IF (useIcebergPickup.AND.niter0.NE.0) THEN
+#ifdef ICEBERG_DIAG_ON
       WRITE(msgBuf,'(A)')
-     &      'ICEBERG: Loading IcebergPickup files'
+     &      'ICEBERG: Loading IcebergPickup file'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
+#endif
        CALL ICEBERG_READ_PICKUP (myThid)
       ENDIF
-#endif
 
-#ifndef ALLOW_ICEBERG_CALVING
-      WRITE(msgBuf,'(A)')
-     &'ICEBERG: Calving is OFF so looking for either IcebergLocationFile
-     & or PickupFile' 
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT , myThid)
+#endif /* ALLOW_ICEBERG_CALVING  */
 
 
-      IF (IcebergLocationFile.NE.' ') THEN
+! #ifndef ALLOW_ICEBERG_CALVING
+
+! #ifdef ICEBERG_DIAG_ON
+!       WRITE(msgBuf,'(A)')
+!      &'ICEBERG: Calving is OFF so looking for either IcebergLocationFile
+!      & or PickupFile' 
+!        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+!      &                    SQUEEZE_RIGHT , myThid)
+! #endif
+
+! C- If there's no calving, can start from a pickup      
  
-       IF (useIcebergPickup.AND.niter0.NE.0) THEN
-        WRITE(msgBuf,'(A)')
-     &  'ICEBERG: useIcebergPickup = TRUE and ninter.NE.0
-     &   so will try to read pickup file'
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT , myThid)
-        CALL ICEBERG_READ_PICKUP (myThid)
+!        IF (useIcebergPickup.AND.niter0.NE.0) THEN
+            
+!         WRITE(msgBuf,'(A)')
+!      &  'ICEBERG: useIcebergPickup = TRUE and ninter.NE.0
+!      &   so will try to read pickup file'
+!         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+!      &                    SQUEEZE_RIGHT , myThid)
+!         CALL ICEBERG_READ_PICKUP (myThid)
 
-       ELSE
+!        ENDIF
 
-        WRITE(msgBuf,'(A)')
-     &  'ICEBERG: reading IcebergLocationFile' 
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT , myThid)
-        CALL ICEBERG_READ_INITIAL_LOCATION_FILE (myThid)
+! C - Or can start from a location file
 
-       ENDIF
+!        IF ((IcebergLocationFile.NE.' ')
+!      &       .and.(.not.useIcebergPickup)) THEN
+!         WRITE(msgBuf,'(A)')
+!      &  'ICEBERG: reading IcebergLocationFile' 
+!         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+!      &                    SQUEEZE_RIGHT , myThid)
+!         CALL ICEBERG_READ_INITIAL_LOCATION_FILE (myThid)
 
-      ELSE
+!       ELSE
 
-       WRITE(msgBuf,'(A)')
-     & 'ICEBERG: no IcebergLocationFile specified.. STOP'
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT , myThid)
-       STOP
+!        WRITE(errorMessageUnit,'(A)')
+!      & 'STOP in ICEBERG_INIT_VARIA : no IcebergLocationFile specified'
+!        STOP 'ABNORMAL END: S/R ICEBERG'
 
-      ENDIF
-#endif
+!       ENDIF
+! #endif
 
   
       RETURN

@@ -1,7 +1,7 @@
 C
 #include "ICEBERG_OPTIONS.h"
 
-      SUBROUTINE ICEBERG_CALVE ( myIter, myThid )
+      SUBROUTINE ICEBERG_CALVE ( myTime, myIter, myThid )
 
 C     ==================================================================
 c     MITberg V1.0 ICEBERG CALVING SCHEME 
@@ -9,8 +9,7 @@ c     ==================================================================
 C
 C    o Icebergs are released at predefined locations
 C
-C    o Ice is calved when CalveStart > CalveDelay
-C      (Modify CalveDelay to delay onset of calving)
+C    o Ice is calved when indicated by the schedule
 C
 C    o Thickness of calved iceberg cannot exceed water depth
 C
@@ -33,10 +32,11 @@ C    ==================================================================
 # include "EXF_PARAM.h"
 #endif
 
+
 C     routine arguements
       INTEGER myThid
       INTEGER myIter
-
+      _RL myTime
 
 C     local arguements
       INTEGER kSurface
@@ -47,41 +47,18 @@ C     local arguements
       INTEGER iUnit, aop, reason
       INTEGER ioUnit
       INTEGER cnt
-      INTEGER n, nn
+      INTEGER n, nn, i
       _RL IceVol, VolMelt
       _RL NumSecYear
       _RL ib_R_low
       INTEGER id
       INTEGER max_ib_id
 
-#ifdef ALLOW_CALVING_OUTPUT
-      INTEGER max_cv_id, nnc
-#endif
+      _RL calving_time
+      _RL iceberg_width
 
-C     IcebergListA  Table containing number of icebergs and frequency
-C                   to discharge them, as follows 
-C                   Structure is 13 x no. calving locations +1
-C
-C      COLUMN N=1  (glacier 1)                       COL N+1   COL.(NumCalveLoc+1)
-C      | 1 | tot ice vol drained by glacier (km3/yr)      |           0  
-C      | 2 | num bergs (size cat. 1)                      |        ib_scale
-C      | 3 | num bergs (size cat. 2)                      |        ib_scale
-C      | 4 | num bergs (size cat. 3)                      |        ib_scale
-C      | 5 | num bergs (size cat. 4)                      |        ib_scale
-C      | 6 | num bergs (size cat. 5)                      |        ib_scale
-C      | 7 | num bergs (size cat. 6)                      |        ib_scale
-C      | 8 | num bergs (size cat. 7)                      |        ib_scale
-C      | 9 | num bergs (size cat. 8)                      |        ib_scale
-C      |10 | num bergs (size cat. 9)                      |        ib_scale
-C      |11 | num bergs (size cat 10)                      |        ib_scale
-C      |12 | Tot num of bergs to calve (sum 2-11)         |           0
-C      |13 | Iceberg calving freq. (seconds)              |           0
-C
-C      VolMelt   ::  Volume water released to ocean at calving margin
-C                    as liquid runoff (m3.s-1)
 C      NumSecYear :: Number of seconds in a year
-C      ib_R_low     :: water depth at calving locatin
-C
+C      ib_R_low     :: water depth at calving location
 
       NumSecYear  = 60. * 60. * 24. * 365.25
       if ( buoyancyRelation .eq. 'OCEANICP' ) then
@@ -90,35 +67,46 @@ C
        kSurface        = 1
       endif
 
-
       _BEGIN_MASTER(myThid)
 
-C     CalveStart is a counter from zero to no. seconds per year
-C     Once CalveStart eq NumSecYear then CalveStart is reset
-      CalveStart = CalveStart + deltaT 
 #ifdef ICEBERG_DIAG_ON
+      IF (ib_debug_level.ge.2) THEN
         WRITE(msgBuf,'(A)') 'ICEBERG: CALVING CALLED'
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
-        WRITE(msgBuf,'(A, f10.3)') 'CalveStart: ', CalveStart
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
 #endif
+
+C     Loop through each calving location and calving list
+C     If the calving time is within deltaT of the current time
+C     then calving the iceberg with the given size
 
 C     Check to see if its time to calve a new iceberg from each
 C     calving location, and if so do it.
-      DO n = 1, NumCalvingLoc 
-       ib_calve_counter (n) = ib_calve_counter (n) + deltaT
 
-C      Calve when it it time and there are icebergs to calve
-       IF (ib_calve_counter(n).GE.IcebergListA (13,n) 
-     &          .AND.CalveStart.GT.CalveDelay 
-     &          .AND.IcebergListA (12,n).GT.0) THEN     
+C     Loop through the calving locations
+      DO n = 1, CALVE_LOCS 
+
+C     Loop through the schedule length
+      DO i = 1, SCHEDULE_LEN
+         calving_time = IcebergCalvingSchedule(i,1,n)
+         iceberg_width = IcebergCalvingSchedule(i,2,n)
+C         WRITE(msgBuf,'(A,F30.10,A,F30.10)'),
+C     &  'calving time: ',calving_time,' iceberg_width:',iceberg_width
+C        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+C     &                    SQUEEZE_RIGHT, myThid )
+
+C        Check if its time to calve
+         IF ((calving_time.ge.myTime).and.
+     &         (ABS(calving_time-myTime)<deltaT)
+     &            .and.(iceberg_width.gt.10)) THEN ! time to calve
 
 #ifdef ICEBERG_DIAG_ON
+      IF (ib_debug_level.ge.2) THEN
         WRITE(msgBuf,'(A)') 'ICEBERG: CALVING EVENT'
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
 #endif
 
 C       Find maximum iceberg ID (to avoid duplicating icebergs)
@@ -128,10 +116,8 @@ C       Find maximum iceberg ID (to avoid duplicating icebergs)
         ENDDO
         
 C       Assign information to each calved iceberg
-        cnt = 0   ! set flag to ZERO
         ib_n = ib_Tot + 1
         ib_id(ib_n) = max_ib_id + 1 !old code: ib_n + IDoffset
-        ib_face(ib_n) = ibCalvingFace(n)
         ib_source (ib_n) = CalvingLocations(n,1) ! iceberg source ID
         ib_i(ib_n) = CalvingLocations(n,2)       ! i-pos 
         ib_j(ib_n) = CalvingLocations(n,3)       ! j-pos
@@ -139,129 +125,84 @@ C       Assign information to each calved iceberg
         ib_vVel(ib_n) = 0.0                      ! Initial meridional velocity
         ibFlag(ib_n) = -1                        ! set as -1 for ice just calved
 
-
 C--  Assign size catagory (width and thickness) to iceberg
-C    Note we calve smallest to largest from IcebergSizeTable
-        DO nn = 1,10
-         IF (IcebergListA(nn+1,n).GT.0.AND.cnt.EQ.0) THEN
-          ib_wth (ib_n) = IcebergSizeTable (nn,3)
-          ib_thk (ib_n) = IcebergSizeTable (nn,4)      
+        ib_wth (ib_n) = IcebergCalvingSchedule(i,2,n)
+        ib_lth (ib_n) = IcebergCalvingSchedule(i,3,n)
+        ib_thk (ib_n) = IcebergCalvingSchedule(i,4,n)    
 
-c          IF (isnan(ib_wth(ib_n))) THEN
-c           WRITE(msgBuf,'(A, F11.1, F11.1)'), 
-c     &     'NaN in iceberg size (iceberg_calve.F) ... STOPPING!', 
-c     &       ib_wth(ib_n),
-c     &       IcebergSizeTable (nn,3)
-c           CALL PRINT_ERROR( msgBuf , myThid)
-c           STOP
-c          ENDIF
+C-- Compute the draft and freeboard
+        ib_dft(ib_n) = (ib_rho/rho_w)*ib_thk(ib_n)
+        ib_fbd(ib_n) = ib_thk(ib_n) - ib_dft(ib_n)
 
-          IcebergListA (nn+1,n) = IcebergListA (nn+1,n) - 1
-          ib_scale(ib_n) = IcebergListA (nn+1,NumCalvingLoc+1)
-          cnt = 1   ! Flag to stop calving
-         ENDIF
-        ENDDO
- 
-C      Sum number of icebergs left (from Master field) to calve
-        IF (cnt.EQ.1) IcebergListA (12,n) = SUM (IcebergListA (2:11,n))
+C-- Find the tile
+        CALL ICEBERG_FIND_TILE (ib_n,myIter, myThid )
 
-C#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DIAG_ON
+      IF (ib_debug_level.ge.3) THEN
 C      Summary of new iceberg added
-        WRITE(msgBuf,'(A)'),
-     &    'Summary of new iceberg calved into ocean: '
+        WRITE(msgBuf,'(A)')
+     &    'ICEBERG: Summary of new iceberg calved into ocean: '
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
-        WRITE(msgBuf,'(3I6, 8F9.2)')
-     &   ib_id(ib_n), ib_tile(ib_n), ib_face(ib_n),
-     &   ib_i(ib_n), ib_j(ib_n), ib_wth(ib_n), ib_thk(ib_n),
-     &   ib_uVel(ib_n), ib_vVel(ib_n),
-     &   ib_scale(ib_n),
-     &   ib_source(ib_n)
+        WRITE(msgBuf,'(A, I6, A, I6)')
+     &   '       ID: ',ib_id(ib_n), ', Tile: ',ib_tile(ib_n)
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                           SQUEEZE_RIGHT, myThid )
-        WRITE(msgBuf,'(A)'),
+       WRITE(msgBuf,'(A,F9.2,A,F9.2,A,F9.2)')
+     &   '       i: ',ib_i(ib_n), ', j: ', ib_j(ib_n),
+     &   ', width: ',ib_wth(ib_n)
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A,F9.2,A,F9.2)')
+     &   '       length: ',ib_lth(ib_n),', thickness: ',ib_thk(ib_n)
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       WRITE(msgBuf,'(A,F9.2,A,F9.2,A,F9.2)')
+     &   '       feeboard: ',ib_fbd(ib_n), 
+     &   ', draft: ',ib_dft(ib_n),', Source: ',ib_source(ib_n)
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       WRITE(msgBuf,'(A,F9.2,A,F9.2)')
+     &   '       uVel:',ib_uVel(ib_n), ', vVel:',ib_vVel(ib_n)
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+        WRITE(msgBuf,'(A)')
      &    '---End of summary---'
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
-C#endif 
-
-#ifdef ALLOW_CALVING_OUTPUT
-C     Find calving row (to find the next one)
-      max_cv_id = 0
-      DO nnc = 0,cv_Tot-1
-      IF (CalvingList(nnc,1).NE.0) THEN
-        max_cv_id = nnc
       ENDIF
-      ENDDO
+#endif 
 
-C     Add the iceberg info to the next row
-C     Assumption is that this can't exceed the 
-C     total number of possible icebergs (seems fair)
-      CalvingList(nnc+1,1) = ib_id(ib_n)
-      CalvingList(nnc+1,2) = myIter
-
-#endif
-
-C   Now increment Total Number of 4
+C   Now increment Total Number of icebergs
         ib_Tot = ib_Tot + 1 
 
-        IF (ib_Tot.GT.max_no_bergs) THEN
-         WRITE(msgBuf,'(A, I10, A, I10)') 
-     &    'ICEBERG: Maximum number of icebergs ',
-     &    max_no_bergs, ' exceeded. ibTot =', ib_Tot, '...STOPPING!'
-         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-         STOP
+        IF (ib_Tot.GT.NUMBER_OF_BERGS) THEN
+       WRITE(errorMessageUnit,'(A, I10, A, I10)') 
+     &  'ICEBERG: Maximum number of icebergs ',
+     &   NUMBER_OF_BERGS, ' exceeded. ibTot =', ib_Tot, '...STOPPING!'
+       STOP 'ABNORMAL END: S/R ICEBERG'
         ENDIF
 
-        ib_calve_counter (n) = 0. ! reset counter
-
-       ENDIF
 #ifdef ICEBERG_DIAG_ON
+      IF (ib_debug_level.ge.2) THEN
         WRITE(msgBuf,'(A, I10)')
-     &  'Number of icebergs in system, after cavling: ', ib_Tot
+     &  'Number of icebergs in system, after calving: ', ib_Tot
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
-#endif
-      ENDDO
-
-C--  RESET CALVING IF CalveStart > No. Seconds per year
-      IF (CalveStart.GT.NumSecYear) THEN
-       CalveStart = 0. _d 0
-
-C      Increase total ice volume (if required)
-       IF (IceInc.GT.0.0.AND.niter0.NE.0)  
-     &     IceIncTot = IceIncTot + IceInc
-C
-C      Increase total liquid runoff (if required)
-       IF (RunoffInc.GT.0.0.AND.niter0.NE.0) THEN    
-         RunoffIncTot = RunoffIncTot + RunoffInc
-C        Calc. total volume of runoff to release (m3/yr-1) 
-         TotRunoffVol = TotRunoffVol + RunoffInc
-         WRITE(msgBuf,'(A, E20.5)')
-     &      'ICEBERG: Total liquid runoff (m3/yr): ', TotRunoffVol
-         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-         WRITE(msgBuf,'(A, E20.5)')
-     &  'ICEBERG: Runoff increase rate (m3.yr-2)[RunoffInc] ',RunoffInc
-         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-        WRITE(msgBuf,'(A, E20.5)')
-     &  'ICEBERG: RunoffIncTot: ' , RunoffIncTot
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-       ENDIF
-C    Remake IcebergListA
-       CALL ICEBERG_CREATE_LISTA (myThid) !update 
-       IcebergListA = IcebergListA_org  ! Reset IcebergListA
       ENDIF
+#endif
+
+      ENDIF ! time to calve
+      ENDDO ! Max number of bergs in schedule
+      ENDDO ! NumCalvingLoc
 
 #ifdef ICEBERG_DIAG_ON
+      IF (ib_debug_level.ge.1) THEN
         WRITE(msgBuf,'(A, I10)')
-     &  'Iceberg calving: Number of icebergs in system: ', ib_Tot
+     &  'ICEBERG: Number of icebergs in system: ', ib_Tot
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
-
+      ENDIF
 #endif
 
       _END_MASTER(myThid)

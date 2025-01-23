@@ -7,7 +7,7 @@ C     ==================================================================
 C     MITberg V1.0 ICEBERG_INIT_FIXED
 C     ==================================================================
 C
-C     o initializes Fixed array
+C     o Initializes the calving locations and the calving schedule
 C
 C     ==================================================================
 
@@ -36,34 +36,46 @@ C     Local arguements
       INTEGER n, i
       CHARACTER(3) locString
       CHARACTER(21) filename
+      INTEGER ib_n, k
 
-#ifdef ALLOW_CALVING_SCHEDULE
+#ifdef ALLOW_ICEBERG_CALVING
 C--   Calving schedule params     
       INTEGER mUnit
       INTEGER scheduleSize
       INTEGER j, nn
-      _RL schedule(SCHEDULE_LEN,3)
+      _RL schedule(SCHEDULE_LEN,4)
       INTEGER iUnit, aop, reason
       CHARACTER(38) schedule_filename
 #endif
+
+      DO ib_n=1,NUMBER_OF_BERGS
+         DO k=1,Nr
+            iceberg_MeltProfile(ib_n,k) = 0.0
+         ENDDO
+        iceberg_SolarMelt(ib_n)=0.0
+        iceberg_AtmMelt(ib_n)=0.0
+        iceberg_MeltProfileCount(ib_n) = 0
+        iceberg_SolarMeltCount(ib_n) = 0
+        iceberg_AtmMeltCount(ib_n) = 0
+      ENDDO
+
+
+#ifdef ALLOW_ICEBERG_CALVING
 C
 C--   Load calving schedule
 
-#ifdef ALLOW_CALVING_SCHEDULE
-
-        scheduleSize = SCHEDULE_LEN*3*8
+        scheduleSize = SCHEDULE_LEN*4*8
         
 C       Initialize the calving schedule to 0
-        DO i=1,NumCalvingLoc
+        DO i=1,CALVE_LOCS
          DO n = 1,SCHEDULE_LEN
-          DO j = 1,3
+          DO j = 1,4
           IcebergCalvingSchedule(n,j,i) = 0.0
           ENDDO
          ENDDO
         ENDDO
 
-C     This block is moved here when we are using the calving
-C     schedule because the IcebergListA is never created
+C     This block is moved here when we are using the calving schedule
       IF (CalvingFile .EQ. ' ') THEN
         WRITE(msgBuf,'(A)') 
      &   'ICEBERG: No CalvingFile provided... STOPPING'
@@ -81,21 +93,18 @@ C     schedule because the IcebergListA is never created
        nn=1 ! Set counter to 1
        aop = 1
        DO WHILE (aop.EQ.1)
-        READ(223,'(F6.1, F7.1, F7.1, I4, F7.4)', IOSTAT=reason), 
+        READ(223,'(F6.1, F7.1, F7.1)', IOSTAT=reason), 
      &  CalvingLocations (nn,1), ! tag source of iceberg
      &  CalvingLocations (nn,2),
-     &  CalvingLocations (nn,3),
-     &  ibCalvingFace (nn),    ! For cube-sphere (1-6)
-     &  CalvingLocations(nn,4) ! discharge from each glacier
-C     Note that discharge from glacier is a fraction (%)
-C     of the total ice volume, which is not used when the
-C     calving schedule is provided
+     &  CalvingLocations (nn,3)
 
+#ifdef ICEBERG_DIAG_ON
        WRITE(msgBuf,'(A,F5.1,A,F5.1,A,F5.1)') 'ICEBERG: ID: ',
      &  CalvingLocations (nn,1),' row: ', CalvingLocations (nn,2),
      &    ' col: ',CalvingLocations (nn,3)
        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
+#endif
 
         IF (reason > 0)  THEN
          WRITE(msgBuf,'(2A)') 'reason>0: could not read iceberg
@@ -104,26 +113,30 @@ C     calving schedule is provided
      &                    SQUEEZE_RIGHT, myThid )
          STOP
         ELSEIF (reason < 0) THEN
+#ifdef ICEBERG_DIAG_ON
          WRITE(msgBuf,'(2A)') 
      &     'ICEBERG: Finished reading: ', CalvingFile
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
+#endif
          aop=2
         ELSE
          nn = nn + 1
-         IF (nn.gt.NumCalvingLoc) THEN
+         IF (nn.gt.CALVE_LOCS) THEN
          aop=2
         ENDIF
         ENDIF
        ENDDO
        CLOSE (223)
 
+#ifdef ICEBERG_DIAG_ON
 C     Now read in the schedules for each location
       WRITE(msgBuf,'(A)') 'ICEBERG: READING Calving Schedules'
        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
+#endif
        
-       DO i=1,NumCalvingLoc
+       DO i=1,CALVE_LOCS
 
 C      User defines a calving schedule
        WRITE (locString,'(I3.3)') i
@@ -139,11 +152,14 @@ C-     Assign a free unit number as the I/O channel for this subroutine
        IcebergCalvingSchedule(:,1,i) = schedule(:,1)
        IcebergCalvingSchedule(:,2,i) = schedule(:,2)
        IcebergCalvingSchedule(:,3,i) = schedule(:,3)
+       IcebergCalvingSchedule(:,4,i) = schedule(:,4)
 
+#ifdef ICEBERG_DIAG_ON
          WRITE(msgBuf,'(2A)')
      &     'ICEBERG: Finished reading: ', schedule_filename
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
+#endif
 
 #ifdef ICEBERG_DIAG_ON
       WRITE(msgBuf,'(A,A,A)')
@@ -151,10 +167,11 @@ C-     Assign a free unit number as the I/O channel for this subroutine
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                           SQUEEZE_RIGHT, myThid )
       DO n=1,SCHEDULE_LEN
-       WRITE(msgBuf,'(F10.1, F10.1, F10.1)'),
+       WRITE(msgBuf,'(F10.1, F10.1, F10.1, F10.1)'),
      &  IcebergCalvingSchedule(n,1,i),
      &  IcebergCalvingSchedule(n,2,i),
-     &  IcebergCalvingSchedule(n,3,i)
+     &  IcebergCalvingSchedule(n,3,i),
+     &  IcebergCalvingSchedule(n,4,i)
        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                           SQUEEZE_RIGHT, myThid )
       ENDDO
@@ -164,104 +181,7 @@ C-     Assign a free unit number as the I/O channel for this subroutine
 
        _BARRIER     
 
-
-#else /* ALLOW_CALVING_SCHEDULE */
-
-#ifdef READ_INDIV_SIZE_FILES
-       WRITE(msgBuf,'(A)') 'ICEBERG: READING Iceberg Size Files'
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-       
-       DO i=1,NumCalvingLoc
-
-C      User can define iceberg size distribution, otherwise 
-C      the model will look for iceberg_size_dist.txt
-       WRITE (locString,'(I3.3)') i
-       filename = 'iceberg_size_dist_' // locString
-       OPEN(223, file=filename, STATUS = 'OLD')
-
-       DO n = 1,10
-        READ(223,'(F4.1, F9.1, F11.1, F11.1)'),
-     &  IcebergSizeTables(i,n,1),
-     &  IcebergSizeTables(i,n,2),
-     &  IcebergSizeTables(i,n,3),
-     &  IcebergSizeTables(i,n,4)
-       ENDDO
-       CLOSE (223)
-
-         WRITE(msgBuf,'(2A)')
-     &     'ICEBERG: Finished reading: ', filename
-         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-
-      WRITE(msgBuf,'(A,A,A)')
-     &      '------ SUMMARY OF ',filename,' ------'
-      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                           SQUEEZE_RIGHT, myThid )
-      DO n=1,10
-       WRITE(msgBuf,'(F4.1, F9.1, F11.1, F11.1)'),
-     &  IcebergSizeTables(i,n,1),
-     &  IcebergSizeTables(i,n,2),
-     &  IcebergSizeTables(i,n,3),
-     &  IcebergSizeTables(i,n,4)
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                           SQUEEZE_RIGHT, myThid )
-      ENDDO
-
-      ENDDO ! Loop through the calving locations
-
-       _BARRIER     
-#else /* READ_INDIV_SIZE_FILES */
-       WRITE(msgBuf,'(A)') 'ICEBERG: READING Iceberg Size File'
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-            
-C      User can define iceberg size distribution, otherwise 
-C      the model will look for iceberg_size_dist.txt
-       IF (IcebergSizeFile .EQ. ' ') THEN
-        OPEN(223, file='iceberg_size_dist.txt', STATUS = 'OLD')
-       ELSE
-        OPEN(223, file=IcebergSizeFile, STATUS = 'OLD')
-       ENDIF
-
-       DO n = 1,10
-        READ(223,'(F4.1, F9.1, F11.1, F11.1)'),
-     &  IcebergSizeTable(n,1),
-     &  IcebergSizeTable(n,2),
-     &  IcebergSizeTable(n,3),
-     &  IcebergSizeTable(n,4)
-       ENDDO
-       CLOSE (223)
-
-         WRITE(msgBuf,'(2A)')
-     &     'ICEBERG: Finished reading: ', IcebergSizeFile
-         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-
-      WRITE(msgBuf,'(A)')
-     &      '------ SUMMARY OF IcebergSizeFile ------'
-      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                           SQUEEZE_RIGHT, myThid )
-      DO n=1,10
-       WRITE(msgBuf,'(F4.1, F9.1, F11.1, F11.1)'),
-     &  IcebergSizeTable(n,1),
-     &  IcebergSizeTable(n,2),
-     &  IcebergSizeTable(n,3),
-     &  IcebergSizeTable(n,4)
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                           SQUEEZE_RIGHT, myThid )
-      ENDDO
-
-       _BARRIER  
-
-#endif /* READ_INDIV_SIZE_FILES */
-
-#ifdef ALLOW_DIAGNOSTICS
-      IF ( useDiagnostics ) THEN
-        CALL ICEBERG_DIAGNOSTICS_INIT( myThid )
-      ENDIF
-#endif
-#endif /* ALLOW_CALVING_SCHEDULE */
+#endif /* ALLOW_ICEBERG_CALVING */
       
       RETURN
       END

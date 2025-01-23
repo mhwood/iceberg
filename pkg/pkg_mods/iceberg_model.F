@@ -29,12 +29,7 @@ C
 #include "PARAMS.h"
 #include "DYNVARS.h"
 #include "ICEBERG.h"
-#ifdef ALLOW_EXCH2
-#include "W2_EXCH2_SIZE.h"
-#include "W2_EXCH2_TOPOLOGY.h"
-#include "W2_OPTIONS.h"
-#include "W2_EXCH2_PARAMS.h"
-#endif /* ALLOW_EXCH2 */
+#include "ICEBERG_PARAMS.h"
 
  
 C     == Global arguments ==
@@ -55,14 +50,25 @@ c     == Local arguements ==
 
 
 #ifdef ICEBERG_DIAG_ON
+      IF (ib_debug_level.ge.3) THEN
       WRITE(msgBuf,'(A)') 'ICEBERG MODEL CALLED'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
 #endif
 
 C     MPI: FIND PROCESS ID and HOW MANY PROCESSES STARTED
       call MPI_COMM_RANK (MPI_COMM_WORLD, proc_id, ierr)
       call MPI_COMM_SIZE (MPI_COMM_WORLD, num_procs, ierr)
+
+
+#ifdef ALLOW_ICEBERG_SUBMERGED_MELT
+C-- If using MW 3D melt, then call ICEBERG_SUBMERGED_MELT
+C-- otherwise, just use the surface melt below
+C-- This is done outside the tile loop below because each berg 
+C-- contributes to FW and Heat flux inside ICEBERG_SUBMERGED_MELT
+      CALL ICEBERG_SUBMERGED_MELT (myTime, myIter, myThid)
+#endif
 
       DO bj = myByLo(myThid),myByHi(myThid)
        DO bi = myBxLo(myThid),myBxHi(myThid)
@@ -74,53 +80,39 @@ C     MPI: FIND PROCESS ID and HOW MANY PROCESSES STARTED
           IF (proc_id.EQ.ib_Tile(ib_n)) THEN           ! Execute specific tiles
            CALL ICEBERG_FIND_IJ (ib_n, ib_iT, ib_jT,   ! find local i,j
      &                                myIter, myThid)
-#ifdef ALLOW_ICEBERG_THERMO
-C--   THERMODYNAMICS PACKAGE
-           IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0)) 
-     &     CALL ICEBERG_THERM (ib_iT, ib_jT, ib_n, bi, bj, 
+
+
+#ifdef ALLOW_ICEBERG_SURFACE_MELT
+C--   SURFACE MELT ROUTINES
+      IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0)) 
+     &     CALL ICEBERG_SURFACE_MELT (ib_iT, ib_jT, ib_n, bi, bj, 
      &                         myIter, myThid)
 #endif
 
 #ifdef ALLOW_ICEBERG_ADVECTION
 C--   ICEBERG ADVECTION SCHEME
            IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0))
-     &     CALL ICEBERG_ADV (ib_iT, ib_jT, ib_n, bi, bj, myThid)
+     &     CALL ICEBERG_ADVECTION (ib_iT, ib_jT, 
+     &                             ib_n, bi, bj, myThid)
 #endif
 
-          ENDIF       
+          ENDIF  ! Execute specific tiles
          ENDDO   ! ib_n
 
         ENDIF   ! if ib_Tot > 0
-
-
-#ifdef ALLOW_ICESHEET_RUNOFF
-        CALL ICEBERG_ICESHEET_RUNOFF (bi, bj, myThid)
-#endif
-
 
         _BARRIER
 
        ENDDO   ! bj
       ENDDO   ! bi
 
-
-
 #ifdef ALLOW_ICEBERG_CALVING
 C--   CALVE ICEBERGS
-#ifdef ALLOW_CALVING_SCHEDULE
-        CALL ICEBERG_CALVE_SCHEDULED ( myTime, myIter, myThid )
-#else
-        CALL ICEBERG_CALVE ( myIter, myThid )
-#endif
+        CALL ICEBERG_CALVE ( myTime, myIter, myThid )
 #endif
 
-
-C--   EXCHANGE ICEBERG BETWEEN TILES AND FACES (if MPI)
+C--   EXCHANGE ICEBERG BETWEEN TILES (if MPI)
       IF (num_procs.GT.1) THEN
-#ifdef ALLOW_EXCH2
-C      Between cube-sphere faces (e.g 1 - 6)
-       CALL ICEBERG_EXCHANGE_FACE ( myThid )
-#endif
 C      Between tiles 
        CALL ICEBERG_EXCHANGE_TILE ( myThid )
       ENDIF
