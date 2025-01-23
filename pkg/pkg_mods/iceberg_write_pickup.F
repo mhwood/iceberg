@@ -52,13 +52,8 @@ C     == local arguments ==
       LOGICAL dumpFiles
       INTEGER n, nn 
       INTEGER mUnit
-      _RL pickupIceberg (15000,13)
+      _RL pickupIceberg (NUMBER_OF_BERGS,15)
       INTEGER IBpickupSize
-
-#ifdef ALLOW_ICEBERG_CALVING
-      _RL pickupCalve(15,100)
-      INTEGER CVpickupSize
-#endif
 
       IF (useSingleCpuIO) THEN
 
@@ -66,10 +61,7 @@ C   Find out if I'm the master thread (and mpi process 0 IF useSingleCpuIO):
        iAmDoingIO = MASTER_CPU_IO(myThid)
       
 C    Calculate size of pickups (real*8)
-       IBpickupSize = 15000*13*8
-#ifdef ALLOW_ICEBERG_CALVING
-       CVpickupSize = 15*100*8
-#endif
+       IBpickupSize = NUMBER_OF_BERGS*15*8
 
 C    Check if its time to write pickup file
       IF ( myIter .NE. nIter0 ) THEN
@@ -89,52 +81,22 @@ C    Check if its time to write pickup file
 C    Clear icebergPickup and calvePickup
        pickupIceberg(:,:) = 0. _d 0 
 
-#ifdef ALLOW_ICEBERG_CALVING
-       pickupCalve(:,:)   = 0. _d 0
-#endif
-
-C    Gather together datat for icebergPickup
+C    Gather together data for icebergPickup
        pickupIceberg(:,1) = ib_id(:)
        pickupIceberg(:,2) = ib_tile(:)
-       pickupIceberg(:,3) = ib_face(:)
-       pickupIceberg(:,4) = calve_slab_counter(:) 
-       pickupIceberg(:,5) = ib_i(:)
-       pickupIceberg(:,6) = ib_j(:)
-       pickupIceberg(:,7) = ib_wth(:)
-       pickupIceberg(:,8) = ib_thk(:)
-       pickupIceberg(:,9) = ib_uVel(:)
-       pickupIceberg(:,10)= ib_vVel(:)
-       pickupIceberg(:,11)= ibFlag(:)
-       pickupIceberg(:,12)= ib_scale(:)
-       pickupIceberg(:,13)= ib_source(:)
-
-#ifndef ALLOW_CALVING_SCHEDULE
-#ifdef ALLOW_ICEBERG_CALVING
-C     Gather togeter data for pickupCalve
-C      Note that array is a table storing no. icebergs still to calve since calving
-C      started and until calving ends
-C
-C      COLUMN N=1  (glacier 1)                      COL N+1   COL.(NumCalveLoc+1)
-C      | 1 | tot ice vol drained by glacier (km3/yr)    |           0
-C      | 2 | num bergs (size cat. 1)                    |        ib_scale
-C     \|/ \|/
-C      |11 | num bergs (size cat 10)                    |        ib_scale
-C      |12 | Tot num of bergs still to calve (sum 2-11) |  
-C      |13 | Iceberg calving frequency (s)              |
-C      |14 | Time (s) until next iceberg calving from glacier n
-C      |15,1 | Time (s) until annual calving period begins, again 
-C      |15,2 | Vol. of ice discharge to increase TotIceVol by each year
-C      |15,3 | Vol. of liquid runoff to increase TotRunoffVol by each year
-C
-       pickupCalve(1:13,1:NumCalvingLoc+1) = IcebergListA
-       DO n = 1,NumCalvingLoc
-        pickupCalve(14,n) = ib_calve_counter(n)
-       ENDDO
-       pickupCalve(15,1) = CalveStart
-       IF (IceInc.GT.0.0) pickupCalve(15,2) = IceIncTot
-       IF (RunoffInc.GT.0.0) pickupCalve(15,3) = RunoffIncTot 
-#endif
-#endif
+       pickupIceberg(:,3) = ib_i(:)
+       pickupIceberg(:,4) = ib_j(:)
+       pickupIceberg(:,5) = ib_wth(:)
+       pickupIceberg(:,6) = ib_lth(:)
+       pickupIceberg(:,7) = ib_thk(:)
+       pickupIceberg(:,8) = ib_dft(:)
+       pickupIceberg(:,9) = ib_fbd(:)
+       pickupIceberg(:,10) = ib_uVel(:)
+       pickupIceberg(:,11) = ib_vVel(:)
+       pickupIceberg(:,12) = ibFlag(:)
+       pickupIceberg(:,13) = ib_source(:)
+       pickupIceberg(:,14) = ib_scale(:)
+       pickupIceberg(:,15) = calve_slab_counter(:) 
 
 C--  First write pickup_iceberg : 
        IF (ib_Tot.GT.0) THEN
@@ -162,24 +124,6 @@ C-     Assign a free unit number as the I/O channel for this subroutine
         ENDIF
 
        ENDIF  ! End ib_n > 0
-#ifndef ALLOW_CALVING_SCHEDULE
-#ifdef ALLOW_ICEBERG_CALVING
-C    Now write pickup_calving : 
-       WRITE (mystring,'(I10.10)') myIter
-       ib_name3 = 'pickup_calving.' // mystring // '.data'
-       _BARRIER
-C-     Assign a free unit number as the I/O channel for this subroutine
-        CALL MDSFINDUNIT( mUnit, myThid )
-
-        IF ( iAmDoingIO ) THEN  ! Only Master thread does writing
-         OPEN ( unit=mUnit, file=ib_name3, status='replace',
-     &          form='unformatted', access='direct',recl=CVpickupSize)
-         WRITE( mUnit, rec=1 ) (pickupCalve)
-         CLOSE ( mUnit )
-         _BARRIER
-        ENDIF
-#endif 
-#endif 
   
       ENDIF  ! /* dumpFiles (pickup) */
 
