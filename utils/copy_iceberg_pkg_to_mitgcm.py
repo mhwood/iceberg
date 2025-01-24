@@ -130,7 +130,7 @@ def update_packages_init_fixed(src_dir, code_path):
         add_lines = ['',
                      '#ifdef ALLOW_ICEBERG',
                      '      IF (useIceberg) THEN',
-                     '        CALL ICEBERG_INIT__FIXED( myThid )',
+                     '        CALL ICEBERG_INIT_FIXED( myThid )',
                      '      ENDIF',
                      '#endif',]
         lines = add_new_lines(lines, indicator, skip_line, add_lines)
@@ -400,7 +400,8 @@ def add_iceberg_package_files(mitgcm_path):
     os.mkdir(os.path.join(mitgcm_path,'pkg','iceberg'))
 
     for file_name in os.listdir(os.path.join('..','pkg','mitberg')):
-        if file_name[-1]=='F':
+        if file_name[-1]=='F' and file_name not in ['iceberg_adv.F','iceberg_exchange_tile.F',
+                                                    'iceberg_icesheet_runoff.F','iceberg_make_IcebergListA.F','iceberg_therm.F']:
             shutil.copyfile(os.path.join('..', 'pkg', 'mitberg', file_name),
                        os.path.join(mitgcm_path, 'pkg', 'iceberg', file_name))
         if file_name[-1]=='h':
