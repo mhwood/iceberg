@@ -92,8 +92,6 @@ C     Seaice velocities
       _RL vvel_si_r
       _RL Vel_si_r
 
-      _RL ib_dft
-      _RL ib_fbd
       _RL ib_SIheff
       _RL ib_SIarea
 
@@ -200,8 +198,6 @@ C     Vel_w_r    abs. relative ocean velocity at iceberg (m s-1)
 C     Vel_a_r    abs. relative wind velocity at iceberg (m s-1)
 C     Vel_si_r   abs. relative seaice velocity at iceberg (m s-1)
 C
-c     ib_dft    iceberg draught based on density of iceberg and water (m)
-C     ib_fbd    iceberg freeboard i.e height of iceberg above water (m)
 c     ib_SIheff local (interpolated) height of sea ice at iceberg (m)
 c     ib_SIarea local (interpolated) concentration of sea ice at iceberg (0-1)
 c     ib_cori   local (interpolated) coriolis parameter at iceberg (rad s-1)
@@ -272,9 +268,6 @@ C ***************************************************************************
       i1 = INT(ib_iT)
       j1 = INT(ib_jT)
 
-      ib_dft = (ib_rho/rho_w)*ib_thk(ib_n)  ! Iceberg draft (m)
-      ib_fbd = ib_thk(ib_n) - ib_dft        ! Iceberg freeboard (m)\
-
 C     Calculate cumulative depth
       cumDepth(1)= 0.
       DO k = 1,Nr
@@ -289,9 +282,9 @@ C     If true then DO NOT advect iceberg
 
 #ifdef ALLOW_SCOURING
 C     Allow icebergs to plow through the sediment
-      IF (ib_dft.GE.(ABS(ib_R_low))+ScourDepth) THEN
+      IF (ib_dft(ib_n).GE.(ABS(ib_R_low))+ScourDepth) THEN
 #else
-      IF (ib_dft.GE.ABS(ib_R_low)) THEN
+      IF (ib_dft(ib_n).GE.ABS(ib_R_low)) THEN
 #endif
        ib_FU = 0. _d 0       ! Set force to zero
        ib_FV = 0. _d 0
@@ -325,8 +318,8 @@ C    OCEAN VELOCITY
 #ifdef ALLOW_ICEBERG_MULTILEVEL
 C      Calculate number of levels iceberg penetrates.
         DO k = 1,Nr-1
-         IF (ib_dft.GE.cumDepth(k)
-     &      .AND.ib_dft.LT.cumDepth(k+1)) ib_nlvl = k
+         IF (ib_dft(ib_n).GE.cumDepth(k)
+     &      .AND.ib_dft(ib_n).LT.cumDepth(k+1)) ib_nlvl = k
         ENDDO
 
 C      Set force/velocity at each vertical level to Zero to be safe
@@ -603,7 +596,7 @@ C        part of the iceberg that penetrates this cell. We also now consider
 C        the influence of drag in the horizontal direction, i.e. along
 C        the bottom of the iceberg.
 C        
-         thkR = ib_dft - cumDepth(k)          ! Thickness of iceberg in bottom cell
+         thkR = ib_dft(ib_n) - cumDepth(k)          ! Thickness of iceberg in bottom cell
 
          IF (k.EQ.1.AND.ib_SIheff.LT.thkR)    ! account for sea ice 
      &     thkR = thkR - ib_SIheff
@@ -663,12 +656,12 @@ C
      &                         + vvel_w_r * vvel_w_r ))
 
        ib_FwU = 0.5 * rho_w 
-     &        * (Cwv * ib_perpL_x * (ib_dft - ib_SIheff)  ! vert. drag
+     &        * (Cwv * ib_perpL_x * (ib_dft(ib_n) - ib_SIheff)  ! vert. drag
      &           +  Cwh * ib_wth(ib_n) * ib_lth(ib_n))          ! horz. drag
      &        * Vel_w_r * uvel_w_r
 
        ib_FwV = 0.5 * rho_w 
-     &        * (Cwv * ib_perpL_y * (ib_dft - ib_SIheff)
+     &        * (Cwv * ib_perpL_y * (ib_dft(ib_n) - ib_SIheff)
      &           +  Cwh * ib_wth(ib_n) * ib_lth(ib_n))
      &        * Vel_w_r * vvel_w_r
 
@@ -711,12 +704,12 @@ C       based on CIS model (Kubat et al., 2005)
          IF (ib_lth(ib_n).GT.50) THEN
          ib_FaU = ib_FaU +
      &            (0.5 * rho_a
-     &             * Cav * ib_perpL_x * ib_keel * ib_fbd * 0.5  
+     &             * Cav * ib_perpL_x * ib_keel * ib_fbd(ib_n) * 0.5  
      &             * Vel_a_r * uvel_a_r)
 
          ib_FaV = ib_FaV +   
      &            (0.5 * rho_a
-     &             * Cav * ib_perpL_y * ib_keel * ib_fbd * 0.5
+     &             * Cav * ib_perpL_y * ib_keel * ib_fbd(ib_n) * 0.5
      &             * Vel_a_r * vvel_a_r)
          ELSE
           ib_FaU = 0. _d 0
@@ -724,9 +717,9 @@ C       based on CIS model (Kubat et al., 2005)
          ENDIF
 
 C        add mass
-         IF (ib_tstep.EQ.1) ib_mass = ib_mass + (ib_wth(ib_n) * ib_keel
-     &                                          * ib_lth(ib_n) * ib_keel
-     &                                          * ib_fbd * 0.5 * ib_rho)
+         IF (ib_tstep.EQ.1) ib_mass = ib_mass +(ib_wth(ib_n) * ib_keel
+     &                                * ib_lth(ib_n) * ib_keel
+     &                                * ib_fbd(ib_n) * 0.5 * ib_rho)
         ENDDO
 
 #endif  /* USE_KEEL_MODEL */
@@ -769,19 +762,20 @@ C
         ENDIF
 
 C        Continue to add mass
-         IF (ib_tstep.EQ.1) ib_mass = ib_mass + (ib_wth(ib_n) * ib_lth(ib_n)
-     &                                           * ib_fbd * ib_rho)
+         IF (ib_tstep.EQ.1) ib_mass = ib_mass + 
+     &                               (ib_wth(ib_n) * ib_lth(ib_n)
+     &                              * ib_fbd(ib_n) * ib_rho)
 #endif
 
 #ifdef USE_TABULAR_ICEBERGS
         ib_FaU = 0.5 * rho_a 
-     &         * (Cav * ib_perpL_x * ib_fbd       ! vert. wind drag
+     &         * (Cav * ib_perpL_x * ib_fbd(ib_n)       ! vert. wind drag
      &           +  Cah * ib_wth(ib_n) * ib_lth(ib_n))  ! horz. wind drag
      &         * Vel_a_r * uvel_a_r
 
 
         ib_FaV = 0.5 * rho_a 
-     &         * (Cav * ib_perpL_y * ib_fbd
+     &         * (Cav * ib_perpL_y * ib_fbd(ib_n)
      &            +  Cah * ib_wth(ib_n) * ib_lth(ib_n))   
      &         * Vel_a_r * vvel_a_r
 #endif
@@ -836,7 +830,7 @@ C
       Wh = 0.02025 * abs(Vel_a - Vel_w)**2     ! wave height
      &     * (1 + cos (pi*ib_SIarea**3)) * 0.5       ! wave-seaice dependency 
 
-      IF(Wh.GT.ib_fbd) Wh = ib_fbd                   ! If wave height > ib_fbd
+      IF(Wh.GT.ib_fbd) Wh = ib_fbd(ib_n)             ! If wave height > ib_fbd
                                                      ! take freeboard as
                                                      ! max. wave height
       IF (uvel_a.NE.0.) THEN
@@ -881,7 +875,7 @@ C     calculate relative velocities
        Vel_si_r  = ABS (sqrt ( uvel_si_r * uvel_si_r   ! absolute
      &                         + vvel_si_r * vvel_si_r ))
 
-       IF (ib_SIheff.GT.ib_fbd) ib_SIheff = ib_fbd
+       IF (ib_SIheff.GT.ib_fbd(ib_n)) ib_SIheff = ib_fbd(ib_n)
 
        ib_FiU = 0.5 * rho_si * Civ 
      &         * (ib_perpL_x * ib_SIheff)
