@@ -677,7 +677,7 @@ C     Otherwise, its a snapshot
      &     ', wave erosion melt = ',ib_Mwave*86400,' m/day'
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                     SQUEEZE_RIGHT, myThid )
-  #endif
+#endif
 
 #endif /* ALLOW_WAVE_EROSION */
 
