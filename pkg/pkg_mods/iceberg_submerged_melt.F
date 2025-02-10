@@ -257,6 +257,14 @@ C Front and back
      I            tProf(ib_n,k),sProf(ib_n,k),meanVel,rC(k),
      O            mWidth(k) )
 
+          IF (isnan(mWidth(k))) THEN
+           WRITE(msgBuf,'(A, F11.1, F11.1, F11.1, F11.1, F11.1)'), 
+     &     'NaN from ICEBERG_MELRRATE ... STOPPING!', 
+     &      tProf(ib_n,k),sProf(ib_n,k),meanVel,rC(k), mWidth(k) 
+           CALL PRINT_ERROR( msgBuf , myThid)
+           STOP
+          ENDIF
+
 #ifdef ICEBERG_DIAG_ON
       IF (ib_debug_level.ge.5) THEN
       WRITE(msgBuf,'(A,I2,A,F20.10,A)') 
@@ -274,6 +282,14 @@ C Left and right
              CALL ICEBERG_MELTRATE(
      I            tProf(ib_n,k),sProf(ib_n,k),meanVel,rC(k),
      O            mLength(k) )
+
+           IF (isnan(mLength(k))) THEN
+           WRITE(msgBuf,'(A, F11.1, F11.1, F11.1, F11.1, F11.1)'),
+     &     'NaN from ICEBERG_MELRRATE ... STOPPING!',
+     &      tProf(ib_n,k),sProf(ib_n,k),meanVel,rC(k), mLength(k)
+           CALL PRINT_ERROR( msgBuf , myThid)
+           STOP
+          ENDIF
 
 #ifdef ICEBERG_DIAG_ON
       IF (ib_debug_level.ge.5) THEN
@@ -308,6 +324,14 @@ C And bottom
             CALL ICEBERG_MELTRATE(
      I            tProf(ib_n,k),sProf(ib_n,k),meanVel,rC(k),
      O            mBasal )
+
+         IF (isnan(mBasal)) THEN
+           WRITE(msgBuf,'(A, F11.1, F11.1, F11.1, F11.1, F11.1)'),
+     &     'NaN from ICEBERG_MELRRATE ... STOPPING!',
+     &      tProf(ib_n,k),sProf(ib_n,k),meanVel,rC(k), mBasal
+           CALL PRINT_ERROR( msgBuf , myThid)
+           STOP
+          ENDIF
       
 
 #ifdef ICEBERG_DIAG_ON
@@ -360,6 +384,7 @@ C   This is done before width so we don't double count
 C--  Compute the mean melt on the berg
 C--  which will be used for resizing
       mMeanL = 0.0
+      IF (ib_lth(ib_n).gt.0) THEN
       DO K = 1,Nr
          mMeanL = mMeanL + mLength(k)*delta_z(ib_n, K)*ib_lth(ib_n)
 C-- Add melted water to the total freshwater flux
@@ -371,6 +396,7 @@ C     front and back sides
      &   * ib_rho/rho_w
       ENDDO
       mMeanL = mMeanL / (ib_thk(ib_n)*ib_lth(ib_n))
+      ENDIF
 
 C-- Recalculate size of iceberg (left and right) due to melting
       ib_wth(ib_n) =  ib_wth(ib_n)
@@ -382,9 +408,11 @@ C-- Add melted basal water to the total freshwater flux
      &   * ib_lth(ib_n)*ib_wth(ib_n)
      &   * ib_rho/rho_w
 
+     IF (ib_lth(ib_n).gt.0) THEN
 C-   Resize from the bottom
       ib_thk(ib_n) =  ib_thk(ib_n)
      &                -mBasal*deltaT
+      ENDIF
 
 C-    Compute the total freshwater flux for a sanity check below
       DO K = 1,Nr
