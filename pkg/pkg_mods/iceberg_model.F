@@ -111,12 +111,6 @@ C--   CALVE ICEBERGS
         CALL ICEBERG_CALVE ( myTime, myIter, myThid )
 #endif
 
-C--   EXCHANGE ICEBERG BETWEEN TILES (if MPI)
-      IF (num_procs.GT.1) THEN
-C      Between tiles 
-       CALL ICEBERG_EXCHANGE_TILE ( myThid )
-      ENDIF
-
 C--   REMOVE MELTED ICEBERGS
       CALL ICEBERG_REMOVE ( myIter, myThid )
 
