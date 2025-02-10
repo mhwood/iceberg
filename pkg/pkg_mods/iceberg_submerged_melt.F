@@ -408,7 +408,7 @@ C-- Add melted basal water to the total freshwater flux
      &   * ib_lth(ib_n)*ib_wth(ib_n)
      &   * ib_rho/rho_w
 
-     IF (ib_lth(ib_n).gt.0) THEN
+      IF (ib_lth(ib_n).gt.0) THEN
 C-   Resize from the bottom
       ib_thk(ib_n) =  ib_thk(ib_n)
      &                -mBasal*deltaT
