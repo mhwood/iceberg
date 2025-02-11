@@ -286,35 +286,35 @@ C     Calculate cumulative depth
       ib_fbd(ib_n) = ib_thk(ib_n) - ib_dft(ib_n)        ! Iceberg freeboard (m)
       ib_vol0 = ib_thk(ib_n) * ib_wth(ib_n) * ib_lth(ib_n)   ! Volume of iceberg (prior to any melt)
 
-      IF (ibFlag(ib_n).EQ.-1) THEN
-C     If iceberg has just calved then adjust its thickness to stop
-C     it exceeding water depth, and then repartition width and length 
-C     to conserve volume. 5 meters of clearance with sea floor is prescribed
-       CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, R_low, varOUT,
-     &                             0, bi, bj, myThid )
-       ib_R_low = ABS(varOUT)                                  ! Water depth (m)
-
-       IF (ib_dft(ib_n).GT.ib_R_low) THEN
-#ifdef ALLOW_SCOURING
-C       iceberg keels can penetrate in to sediment up to 10m
-C       and iceberg will still drift
-C        ib_dft = ib_R_low + 9.5       
-#endif
-        ib_dft(ib_n) = ib_R_low - 5.          ! update draft (5 m clearance)
-        IF (ib_dft(ib_n).LE.0.) THEN
-         WRITE(msgBuf,'(A,F11.1,F11.1,F11.1,F11.1,I5,F11.1,I5)'),
-     &   'Iceberg released over land... STOPPING!',
-     &    ib_dft, ib_R_low,ib_iT,ib_jT,
-     &    ib_i(ib_n),ib_j(ib_n),ib_id(ib_n)
-         STOP
-        ENDIF
-        ib_thk(ib_n) = (ib_dft(ib_n)*rho_w)/ib_rho
-        ib_fbd(ib_n) = ib_thk(ib_n) - ib_dft(ib_n)        ! Iceberg freeboard (m)
-        ib_wth(ib_n) = (ib_vol0/(ib_thk(ib_n)))**(1./2.) ! Conserve volume
-        ib_lth(ib_n) = (ib_vol0/(ib_thk(ib_n)))**(1./2.) ! Conserve volume
-        ib_vol0 = ib_thk(ib_n) * ib_wth(ib_n) * ib_lth(ib_n)
-       ENDIF
-      ENDIF
+C      IF (ibFlag(ib_n).EQ.-1) THEN
+CC     If iceberg has just calved then adjust its thickness to stop
+CC     it exceeding water depth, and then repartition width and length 
+CC     to conserve volume. 5 meters of clearance with sea floor is prescribed
+C       CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, R_low, varOUT,
+C     &                             0, bi, bj, myThid )
+C       ib_R_low = ABS(varOUT)                                  ! Water depth (m)
+C
+C       IF (ib_dft(ib_n).GT.ib_R_low) THEN
+C#ifdef ALLOW_SCOURING
+CC       iceberg keels can penetrate in to sediment up to 10m
+CC       and iceberg will still drift
+CC        ib_dft = ib_R_low + 9.5       
+C#endif
+C        ib_dft(ib_n) = ib_R_low - 5.          ! update draft (5 m clearance)
+C        IF (ib_dft(ib_n).LE.0.) THEN
+C         WRITE(msgBuf,'(A,F11.1,F11.1,F11.1,F11.1,I5,F11.1,I5)'),
+C     &   'Iceberg released over land... STOPPING!',
+C     &    ib_dft, ib_R_low,ib_iT,ib_jT,
+C     &    ib_i(ib_n),ib_j(ib_n),ib_id(ib_n)
+C         STOP
+C        ENDIF
+C        ib_thk(ib_n) = (ib_dft(ib_n)*rho_w)/ib_rho
+C        ib_fbd(ib_n) = ib_thk(ib_n) - ib_dft(ib_n)        ! Iceberg freeboard (m)
+C        ib_wth(ib_n) = (ib_vol0/(ib_thk(ib_n)))**(1./2.) ! Conserve volume
+C        ib_lth(ib_n) = (ib_vol0/(ib_thk(ib_n)))**(1./2.) ! Conserve volume
+C        ib_vol0 = ib_thk(ib_n) * ib_wth(ib_n) * ib_lth(ib_n)
+C       ENDIF
+C      ENDIF
 
       fbd_ratio = ib_rho/rho_w   ! ratio of subaerial to subaqueous
       r_fbd_ratio = 1./fbd_ratio ! ratio of subaqueous to subaerial
@@ -714,6 +714,9 @@ C     Applying wave erosion now just to the top of the iceberg
 C     as a thickness change
       ib_thk(ib_n) = ib_thk(ib_n) - ib_Mwave*deltaT 
 #endif /* ALLOW_WAVE_EROSION */
+
+C--   thickness should not be negative
+      IF (ib_thk(ib_n).lt.0.0) ib_thk(ib_n) = 0.0
 
 C--   calculate volume of iceberg (after melt)
       ib_vol1 = ib_thk(ib_n) * ib_lth(ib_n) * ib_wth(ib_n)  ! Updated iceberg volume

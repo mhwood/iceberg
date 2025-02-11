@@ -58,6 +58,9 @@ C waves, convection etc. This isn't very physical, but will do for now.
 
       absVelocity = abs(velocity)
 
+      if (temperature.lt.-1.9) temperature=-1.9
+      if (salinity.lt.0.01) salinity=0.01
+
 C Calculate melt rate from 3 equation formualtion (as for plume models)
 
 C     Equations for Sb, Tb and mdot

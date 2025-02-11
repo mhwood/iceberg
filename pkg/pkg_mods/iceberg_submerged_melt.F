@@ -164,7 +164,8 @@ C    just loop through the list of locations
         
           IF (proc_id.EQ.ib_Tile(ib_n)) THEN           ! Only execute if the berh is on this tile
 
-      IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0)) THEN ! Check iceberg is not melted
+      IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0)
+     & .and.(ib_lth(ib_n).gt.0).and.(ib_wth(ib_n).gt.0)) THEN ! Check iceberg is not melted
         I = INT(ib_i(ib_n))
         J = INT(ib_j(ib_n))
 
@@ -373,7 +374,7 @@ C     left and right sides
      &     *ib_rho/rho_w
       ENDDO
 C the melt is distributed over the whole thickness, so
-C we have thickness on the bottom, not just draft
+C we have thickness on the denominator, not just draft
       mMeanW = mMeanW / (ib_thk(ib_n)*ib_wth(ib_n))
 
 C-- Recalculate size of iceberg (front and back) due to melting

@@ -36,7 +36,7 @@ C     myThid :: my Thread Id number
 C     == Local variables ==
 C     IcebergOutput :: store all iceberg data for writing out
       CHARACTER(10) mystring
-      CHARACTER(31) ib_name
+      CHARACTER(36) ib_name
       CHARACTER*(MAX_LEN_MBUF) suff
       LOGICAL  DIFFERENT_MULTIPLE
       EXTERNAL DIFFERENT_MULTIPLE
@@ -87,7 +87,7 @@ C     If its time to write out then:
        IF (dumpFiles) THEN
         IF (ib_Tot.GT.0) THEN
          WRITE (mystring,'(I10.10)') myIter
-         ib_name = 'diags/iceberg/iceberg' // mystring
+         ib_name = 'diags/iceberg/iceberg.' // mystring // '.bin'
          _BARRIER
          WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', ib_name
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,

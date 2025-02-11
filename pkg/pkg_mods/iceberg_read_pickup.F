@@ -33,9 +33,8 @@ C     Local arguements
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER aop, reason
       INTEGER n
-      _RL IcebergListA_pickup (15,51)
       INTEGER mUnit
-      _RL pickupIceberg (NUMBER_OF_BERGS,13)
+      _RL pickupIceberg (NUMBER_OF_BERGS,15)
       INTEGER IBpickupSize
  
       _BEGIN_MASTER(myThid)
@@ -43,7 +42,7 @@ C     Local arguements
       If (useIcebergPickup.AND.niter0.NE.0.) THEN
 
        pickupIceberg(:,:) = 0. _d 0
-       IBpickupSize = NUMBER_OF_BERGS*13*8
+       IBpickupSize = NUMBER_OF_BERGS*15*8
 
 C--   READ pickup_iceberg.XXXXXXXXXX       
        WRITE (mystring,'(I10.10)') niter0
@@ -107,7 +106,7 @@ C     Write summary of data read from pickup (to STDOUT)
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                           SQUEEZE_RIGHT, myThid )
       DO n=1,ib_Tot
-       WRITE(msgBuf,'(I6, 10F9.2, I6, 3F9.2)')
+       WRITE(msgBuf,'(2I6, 9F9.2, I6, 3F9.2)')
      &   ib_id(n), ib_tile(n),
      &   ib_i(n), ib_j(n),
      &   ib_wth(n), ib_lth(n),

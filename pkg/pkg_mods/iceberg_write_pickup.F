@@ -63,18 +63,23 @@ C   Find out if I'm the master thread (and mpi process 0 IF useSingleCpuIO):
 C    Calculate size of pickups (real*8)
        IBpickupSize = NUMBER_OF_BERGS*15*8
 
+
 C    Check if its time to write pickup file
       IF ( myIter .NE. nIter0 ) THEN
        dumpFiles = .FALSE.
        dumpFiles =
-     &     DIFFERENT_MULTIPLE(pChkptFreq,myTime,deltaT)
+     &     DIFFERENT_MULTIPLE(pChkptFreq,myTime,deltaTclock)
 #ifdef ALLOW_CAL
        IF ( useCAL ) THEN
-        CALL CAL_TIME2DUMP( pChkptFreq, deltaT,
+        CALL CAL_TIME2DUMP( zeroRL, pChkptFreq, deltaTclock,
      U                        dumpFiles,
      I                        myTime, myIter, myThid )
        ENDIF
 #endif
+      ENDIF
+
+      IF ( myIter .EQ. nIter0 ) THEN
+       dumpFiles = .FALSE.
       ENDIF
 
       IF (dumpFiles) THEN
