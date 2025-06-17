@@ -1,0 +1,52 @@
+/* Base styling */
+body {
+  background-color: #f0f8ff; /* very light icy blue */
+  color: #003f5c; /* dark text */
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Headers */
+h1, h2 {
+  color: #003f5c; /* navy or deep glacier blue */
+  font-weight: 100;
+}
+
+/* Form containers */
+[class$='-container'] {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1% 0;
+
+}
+
+/* Input fields */
+input[type="text"] {
+  border: 1px solid #d0d0d0;
+  background-color: #ffffff;
+  color: #000000;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+input[type="text"]:focus {
+  /*border: 1px solid #0077be;*/
+  outline: none;
+  box-shadow: 0 0 1px rgba(0, 119, 190, 0.5);
+}
+
+/* Buttons */
+
+
+/* Terminal output styling */
+#output-text {
+  white-space: pre-wrap;
+  background-color: #ffffff;
+  border: 1px solid #d0d0d0;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  min-height: 400px;
+  max-height: 400px;
+}
