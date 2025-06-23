@@ -136,7 +136,7 @@ class DataCollector:
 
     def get_glacier_dimension(self, gate_number):
         name = self.get_glacier_name(gate_number)
-        file_path = os.path.join(input_dir, 'calving_schedules')
+        file_path = os.path.join(input_dir, 'calving_schedules','1992')
         origin = datetime.datetime(1992, 1, 15)
         file = os.path.join(file_path, f'calving_schedule_{self.get_gate_index(gate_number)}')
         df = np.fromfile(file, '>f8')

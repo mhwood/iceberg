@@ -2,6 +2,7 @@ import argparse
 import os
 import numpy as np
 import netCDF4 as nc4
+from scipy.interpolate import interp1d
 
 def read_flux_timeseries_from_nc(input_folder):
     file_path = os.path.join(input_folder, 'Glacier', 'Ice Flux Timeseries.nc')
@@ -17,7 +18,6 @@ def read_flux_timeseries_from_nc(input_folder):
     ds.close()
 
     return glacier_names, all_timeseries
-
 
 def compute_cumulative_flux(timeseries, year):
     timeseries_subset = np.copy(timeseries)
@@ -42,13 +42,24 @@ def compute_cumulative_flux(timeseries, year):
 
     return (cumulative_flux_timeseries)
 
+def compute_cumulative_flux_from_annual_mean(timeseries, year):
+    timeseries_subset = np.copy(timeseries)
 
-def compute_iceberg_size_distribution(total_volume_flux):
+    dense_time = np.linspace(year, year + 1, 365)  # Daily time resolution
+
+    interp_func = interp1d(timeseries_subset[:, 0], timeseries_subset[:, 1])
+    dense_flux = interp_func(dense_time)
+
+    mean_flux = np.mean(dense_flux)
+
+    return (mean_flux)
+
+
+def compute_iceberg_size_distribution(total_volume_flux, printing=False):
     # define some constants
     size_categories = 50
-    beta = -8 / 5
     beta = -1 * (1.95 + 1.87 + 1.62) / 3  # Sulak et al average
-    max_size = 9
+    max_size = 10
     min_size = 4
 
     # define the volume intervals
@@ -74,41 +85,58 @@ def compute_iceberg_size_distribution(total_volume_flux):
     number_of_bergs = np.zeros_like(n)
     for vi in range(len(v)):
         number_of_bergs[vi] = c * n[vi] * (v_edges[vi + 1] - v_edges[vi])
+
+    # round the number of bergs to the nearest integer
     number_of_bergs = np.round(number_of_bergs)
 
-    # iceberg_volumes = np.zeros_like(n)
-    # for vi in range(len(v)):
-    #     iceberg_volumes[vi] = number_of_bergs[vi] * v[vi]
-    # print('Total number of bergs: ' + str(np.sum(number_of_bergs)))
-    # print('Total iceberg volume: ' + str(np.sum(iceberg_volumes)) + ' (check: ' + str(total_volume_flux) + ')')
+    # compute difference due to rounding and adjust the categories one by one until
+    # the total volume flux is matched
+    total_volume_flux_check = np.sum(number_of_bergs * v)
+    for k in range(100): # limit this so we don't get stuck in an infinite loop
+        for vi in range(len(v)):
+            if number_of_bergs[vi] > 0:
+                number_of_bergs[vi] += 1
+                total_volume_flux_check = np.sum(number_of_bergs * v)
+                if total_volume_flux_check >= total_volume_flux:
+                    break
 
+    iceberg_volumes = np.sum(number_of_bergs * v)
+    if printing:
+        print('        - Total number of bergs: ' + str(np.sum(number_of_bergs)))
+        print('        - Total iceberg volume: ' + str(np.sum(iceberg_volumes)) + ' (check: ' + str(total_volume_flux) + ')')
+        print('        - Ratio: '+ str(np.sum(iceberg_volumes) / total_volume_flux) + ' (should be close to 1)')
     return (v, number_of_bergs)
 
 
-def compute_size_distributions(glacier_names, flux_timeseries):
-    start_year = 2016
+def compute_size_distributions(glacier_names, flux_timeseries, printing=True):
+    start_year = 1990
     end_year = 2020
+
+    calving_fraction = 0.9  # Fraction of calving flux that contributes to iceberg formation (not direct melt)
 
     iceberg_volume_set = []
     iceberg_count_set = []
     years = np.arange(start_year, end_year + 1)
 
     for g in range(len(glacier_names)):
-        print(' - Working on glacier ' + str(glacier_names[g]))
+        if printing:
+            print(' - Working on glacier ' + str(glacier_names[g]))
         timeseries = flux_timeseries[g]
 
         for year in range(start_year, end_year + 1):
-            cumulative_timeseries = compute_cumulative_flux(timeseries, year)
-            total_calving_flux = 0.9 * cumulative_timeseries[-1, 1]  # Replaced calving_fraction = 0.9
-            print('    - Calving flux in year ' + str(year) + ': ' + str(total_calving_flux) + ' Gt')
+            annual_flux = compute_cumulative_flux_from_annual_mean(timeseries, year)
+            total_calving_flux = annual_flux * calving_fraction
+            if printing:
+                print('    - Calving flux in year ' + str(year) + ': ' + str(total_calving_flux) + ' Gt')
             total_calving_volume = total_calving_flux * 1e12 / 917
-            print('    - Calving volume in year ' + str(year) + ': ' + '{:.2e}'.format(total_calving_volume) + ' m3')
+            if printing:
+                print('    - Calving volume in year ' + str(year) + ': ' + '{:.2e}'.format(total_calving_volume) + ' m3')
             iceberg_volumes, number_of_bergs = compute_iceberg_size_distribution(total_calving_volume)
-            print('    - Total number of icebergs in year ' + str(year) + ': ' + str(int(np.sum(number_of_bergs))))
+            if printing:
+                print('    - Total number of icebergs in year ' + str(year) + ': ' + str(int(np.sum(number_of_bergs))))
             if year == start_year:
                 iceberg_counts = np.zeros((end_year - start_year + 1, np.size(iceberg_volumes)))
                 iceberg_volume_set.append(iceberg_volumes)
-
             iceberg_counts[year - start_year, :] = number_of_bergs
 
         iceberg_count_set.append(iceberg_counts)
@@ -154,8 +182,19 @@ if __name__ == '__main__':
 
     glacier_names, flux_timeseries = read_flux_timeseries_from_nc(input_folder)
 
+    #import matplotlib.pyplot as plt
+    # timeseries = flux_timeseries[glacier_names.index('129_UPERNAVIK_ISSTROM_N')]
+    # plt.plot(timeseries[:,0], timeseries[:, 1])
+    # plt.show()
+
+    # flux_timeseries = [flux_timeseries[glacier_names.index('129_UPERNAVIK_ISSTROM_N')]]
+    # glacier_names = ['129_UPERNAVIK_ISSTROM_N']
+
     years, iceberg_volume_set, iceberg_count_set = \
         compute_size_distributions(glacier_names, flux_timeseries)
+
+    # plt.loglog(iceberg_volume_set[0], iceberg_count_set[0][0, :], 'b.', label='Iceberg Count Distribution')
+    # plt.show()
 
     save_distributions_to_nc(glacier_names, years, iceberg_volume_set, iceberg_count_set)
 

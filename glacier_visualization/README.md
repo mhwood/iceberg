@@ -10,6 +10,7 @@ In order for the app to run, you need the following packages install in your Pyt
 
 - Pandas
 - NumPy
+- scipy
 - Dash
 - Plotly
 - NetCDF4
@@ -21,16 +22,16 @@ Run the following commands to install the required packages:
 ```bash
 conda create -n ocean python=3.11
 conda activate ocean
-conda install pandas numpy dash plotly 
-conda install -c conda-forge::netcdf4 
-conda install -c conda-forge::dash-bootstrap-components
+conda install pandas numpy dash plotly scipy
+conda install conda-forge::netcdf4 
+conda install conda-forge::dash-bootstrap-components
 ```
 
 ### Using pip
 ```bash
 python3 -m venv ocean
 source ocean/bin/activate
-pip install pandas numpy dash plotly netCDF4 dash-bootstrap-components
+pip install pandas numpy scipy dash plotly netCDF4 dash-bootstrap-components
 ```
 
 ## Input and Requirements:

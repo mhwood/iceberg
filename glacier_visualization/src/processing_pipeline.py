@@ -17,7 +17,7 @@ def run_pipeline(gate_path='data', grid_path='data'):
         print(line, end='', flush=True)
     proc_flux.wait()
 
-    cmd_calving = ['python3', 'create_greenland_calving_timeseries.py']
+    cmd_calving = ['python3', 'create_greenland_iceberg_distributions.py']
     cmd_gate = ['python3', 'gate_location_extractor.py']
 
     print(f"Running: {' '.join(cmd_calving)}")

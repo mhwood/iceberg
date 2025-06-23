@@ -16,31 +16,6 @@ def read_grid_geometry(grid_path):
 
     return (XC, YC, Depth)
 
-
-# def read_model_front_locations_from_shp(glacier_names, shapefile_name):
-#
-#     r = shapefile.Reader(shapefile_name)
-#     records = r.records()
-#
-#     glacier_dict = {}
-#     for glacier in glacier_names:
-#         rows = []
-#         cols = []
-#         depths = []
-#         for i in range(len(records)):
-#             record = list(records[i])
-#             if glacier in record:
-#                 rows.append(record[0])
-#                 cols.append(record[1])
-#                 depths.append(int(record[2]))
-#         rows = np.array(rows)
-#         cols = np.array(cols)
-#         depths = np.array(depths)
-#         glacier_dict[glacier] = [rows, cols, depths]
-#
-#     return(glacier_dict)
-
-
 def mapping_to_row_and_col(coordinate_list, grid_path, n_rows, n_cols):
     model_grid = np.fromfile(os.path.join(grid_path), '>f8').reshape((16, n_rows + 1, n_cols + 1))
     # recreate the grids that will be used in the model
@@ -78,27 +53,26 @@ def read_glacier_loc_from_loc_file(loc_file_path: str):
     return np.load(loc_file_path, allow_pickle=True)
 
 
-def read_calving_timeseries_from_nc(project_dir):
+def read_calving_distributions_from_nc(project_dir):
     file_path = os.path.join(project_dir, 'Glacier', 'Iceberg Size Distribution.nc')
 
     ds = nc4.Dataset(file_path)
 
     glacier_names = list(ds.groups)
 
-    # years = [int(year) for year in ds['year'][:]]
+    years = [int(year) for year in ds['year'][:]]
+
+    # get the volume just from the first group
+    # since they are all the same
+    volumes = ds[glacier_names[0]].variables['volume'][:]
 
     all_timeseries = {}
     for g in range(len(glacier_names)):
         grp = ds.groups[glacier_names[g]]
-        all_timeseries[glacier_names[g]] = np.column_stack(
-            [
-                grp.variables['iceberg_count'][:].T,
-                grp.variables['volume'][:]
-            ]
-        )
+        all_timeseries[glacier_names[g]] = grp.variables['iceberg_count'][:,:]
     ds.close()
 
-    return all_timeseries
+    return glacier_names, years, volumes, all_timeseries
 
 
 def great_circle_distance(lon_ref, lat_ref, Lon, Lat):
@@ -293,15 +267,19 @@ def date_to_iter_number(date, seconds_per_iter=60):
     return (iter_number)
 
 
-def generate_timeseries(years, v, count, N=5000):
-    full_times = np.zeros((N * len(years),))
-    full_widths = np.zeros((N * len(years),))
-    full_thicknesses = np.zeros((N * len(years),))
-    full_volumes = np.zeros((N * len(years),))
+def generate_timeseries(glacier_number, years, v, count, N, model_start_date=datetime(1992, 1, 15, 12)):
+    # set a random seed for reproducibility
+    np.random.seed(glacier_number)
 
-    start_time = (datetime(years[0], 1, 1) - datetime(1992, 1, 1)).total_seconds()
+    full_times = np.zeros((len(years),N))
+    full_widths = np.zeros((len(years),N))
+    full_lengths = np.zeros((len(years), N))
+    full_thicknesses = np.zeros((len(years),N))
+    full_volumes = np.zeros((len(years), N))
+
+
     for year in years:
-
+        start_time = (datetime(year, 1, 1) - model_start_date).total_seconds()
         if year % 4 == 0:
             end_time = start_time + 366 * 86400
         else:
@@ -311,12 +289,13 @@ def generate_timeseries(years, v, count, N=5000):
         volumes = np.zeros((N,))
         counted = 0
         for i in range(len(v)):
-            volumes[counted:counted + int(count[i])] = v[i]
-            counted += int(count[i])
+            volumes[counted:counted + int(count[year-years[0], i])] = v[i]
+            counted += int(count[year-years[0], i])
         np.random.shuffle(volumes)
 
         # sample the volumes into an estimate of widths and thicknesses
         widths = np.zeros((N,))
+        lengths = np.zeros((N,))
         thicknesses = np.zeros((N,))
         removed_for_depth = 0
         for j in range(len(volumes)):
@@ -324,19 +303,22 @@ def generate_timeseries(years, v, count, N=5000):
                 cube_width = volumes[j] ** 0.33
 
                 w = np.random.normal(loc=cube_width, scale=0.2 * cube_width)
-                t = volumes[j] / (w * 1.62 * w)
-                dep = volumes[j] / (widths[j] * thicknesses[j])
+                l = np.random.normal(loc=cube_width, scale=0.2 * cube_width)
+                t = volumes[j] / (l * w)
+
                 # rotate if necessary
                 if t > w:
                     tmp = np.copy(t)
                     t = np.copy(w)
                     w = tmp
+                if t > l:
+                    tmp = np.copy(t)
+                    t = np.copy(l)
+                    l = tmp
 
-                if t < dep - 10:
-                    widths[j] = w
-                    thicknesses[j] = t
-                else:
-                    removed_for_depth += 1
+                widths[j] = w
+                lengths[j] = l
+                thicknesses[j] = t
 
         # get calving times
         times = np.round(np.random.uniform(start_time, end_time, (N,)))
@@ -345,59 +327,46 @@ def generate_timeseries(years, v, count, N=5000):
         indices = np.argsort(times)
         times = times[indices]
         widths = widths[indices]
+        lengths = lengths[indices]
         thicknesses = thicknesses[indices]
         volumes = volumes[indices]
 
         # remove tiny icebergs
-        indices_small = np.logical_and(widths < 10, thicknesses < 10)
+        indices_small = np.logical_and(widths < 10, lengths < 10, thicknesses < 10)
         times[indices_small] = 0
         widths[indices_small] = 0
+        lengths[indices_small] = 0
         thicknesses[indices_small] = 0
         volumes[indices_small] = 0
 
         # put everything into the big matrix
-        full_times[N * (year - years[0]):N * (year - years[0] + 1)] = times
-        full_widths[N * (year - years[0]):N * (year - years[0] + 1)] = widths
-        full_thicknesses[N * (year - years[0]):N * (year - years[0] + 1)] = thicknesses
-        full_volumes[N * (year - years[0]):N * (year - years[0] + 1)] = volumes
+        full_times[(year - years[0]),:] = times
+        full_lengths[(year - years[0]),:] = lengths
+        full_widths[(year - years[0]),:] = widths
+        full_thicknesses[(year - years[0]),:] = thicknesses
+        full_volumes[(year - years[0]),:] = volumes
 
-        if year % 4 == 0:
-            start_time += 366 * 86400
-        else:
-            start_time += 365 * 86400
-
-    return np.column_stack([full_times, full_widths, full_thicknesses, full_volumes])
+    return full_times, full_widths, full_lengths, full_thicknesses, full_volumes
 
 
-def create_calving_schedules(output_path, calving_timeseries, outlet_id, length=100000):
-    np.random.seed(17)
+def create_calving_schedules(output_path, years, calving_timeseries, outlet_id, length=100000):
+
+    full_times, full_widths, full_lengths, full_thicknesses, full_volumes = calving_timeseries
 
     # calving_schedules = np.zeros((int(sum(n_bergs_per_year))*len(years),4))
     calving_schedules = np.zeros((length, 4))  # Use n_bergs from glacier with most icebergs in the data
-    for t in range(np.shape(calving_timeseries)[0]):
-        dec_yr = calving_timeseries[t, 0]
-        width = calving_timeseries[t, 1]
-        length = calving_timeseries[t, 2]
-        thickness = calving_timeseries[t, 3]
+    for year in years:
+        if str(year) not in os.listdir(os.path.join(output_path, 'calving_schedules')):
+            os.mkdir(os.path.join(output_path,'calving_schedules', str(year)))
+        year_index = year - years[0]
+        times = full_times[year_index, :]
+        widths = full_widths[year_index, :]
+        lengths = full_lengths[year_index, :]
+        thicknesses = full_thicknesses[year_index, :]
 
-        # model_time = (datetime(int(np.floor(dec_yr)),1,1) - datetime(1992,1,1)).total_seconds()
-        # if int(np.floor(dec_yr)) %4 == 0:
-        #     model_time += (dec_yr-int(np.floor(dec_yr)))*366*24*60*60
-        # else:
-        #     model_time += (dec_yr - int(np.floor(dec_yr))) * 366 * 24 * 60 * 60
-        # date_check = datetime(1992,1,1) + timedelta(seconds=model_time)
-        model_time = dec_yr
-
-        calving_schedules[t][0] = model_time
-        calving_schedules[t][1] = width
-        calving_schedules[t][2] = length
-        calving_schedules[t][3] = thickness
-
-    os.makedirs(os.path.join(output_path, 'calving_schedules'), exist_ok=True)
-    print('    - Writing schedule for outlet ' + str(outlet_id))
-    output_schedules = np.array(calving_schedules).T
-    output_schedules.ravel('C').astype('>f8').tofile(
-        os.path.join(output_path, 'calving_schedules', 'calving_schedule_' + '{:03d}'.format(outlet_id)))
+        output_schedules = np.array(np.column_stack((times, widths, lengths, thicknesses))).T
+        output_schedules.ravel('C').astype('>f8').tofile(
+        os.path.join(output_path, 'calving_schedules', str(year), 'calving_schedule_' + '{:03d}'.format(outlet_id)))
 
 
 def plot_time_series(data_frame, diff=False):
@@ -468,30 +437,49 @@ if __name__ == "__main__":
     write_calving_location_file(input_folder, output_table)
 
     print('    - Reading in calving timeseries')
-    all_calving_timeseries = read_calving_timeseries_from_nc(input_folder)
+    glacier_names, years, volumes, all_calving_distributions = read_calving_distributions_from_nc(input_folder)
+
+    # compute the maxiumum number of icebergs from any glacier in any one year
+    max_iceberg_count = 0
+    for g, glacier_name in enumerate(glacier_names):
+        distribution = all_calving_distributions[glacier_name]
+        glacier_iceberg_count = 0
+        for y in range(len(years)):
+            iceberg_count = np.sum(distribution[y, :])
+            if iceberg_count > glacier_iceberg_count:
+                glacier_iceberg_count = iceberg_count
+        if glacier_iceberg_count > 50000:
+            print(f'    - Glacier {glacier_name} has {glacier_iceberg_count} icebergs in maximum year')
+        if glacier_iceberg_count > max_iceberg_count:
+            max_iceberg_count = glacier_iceberg_count
+
+    print(f'    - Maximum number of icebergs in any year: {max_iceberg_count}')
 
     years = [1992] # Change to generate more or change year(s)
+    schedule_length = 100000
 
-    glacier_names = list(all_calving_timeseries.keys())
+    # glacier_names = ['129_UPERNAVIK_ISSTROM_N']
     print(f'    - Identified {len(glacier_names)} calving locations')
 
     for i, glacier_name in enumerate(glacier_names):
         print(f'    - Generating calving schedule for {glacier_name}')
-        iceberg_count = all_calving_timeseries[glacier_name][0]
+        iceberg_count = all_calving_distributions[glacier_name]
         calving_timeseries = generate_timeseries(
+            glacier_number=i,
             years=years,
-            v=all_calving_timeseries[glacier_name][1],
+            v=volumes,
             count=iceberg_count,
-            N=50000 # Make input for this in main
+            N=schedule_length
         )
-        # print(f'    - Writing diagnostics calving timeseries for {glacier_name}')
-        # calving_timeseries.ravel('C').astype('>f8').tofile(
-        #     os.path.join(output_folder, 'calving_schedule_' + str(i)))
-        print(f'    - Generated calving schedule for {glacier_name}, interpolating to schedule file')
+
+        if 'calving_schedules' not in os.listdir(input_folder):
+            os.mkdir(os.path.join(input_folder, 'calving_schedules'))
+
+        print(f'    - Generated calving schedule for {glacier_name}, writing to schedule files')
         create_calving_schedules(
             input_folder,
+            years=years,
             calving_timeseries=calving_timeseries,
-            # n_glaciers=len(glacier_names),
-            length=100000,  # make input for this
+            length=schedule_length,
             outlet_id=i+1
         )
