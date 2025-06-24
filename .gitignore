@@ -8,6 +8,10 @@ __pycache__/
 
 .DS_Store
 
+# remove some data paths
+glacier_visualization/src/data/calving_schedules/*
+glacier_visualization/src/cache/*
+
 # Distribution / packaging
 .Python
 build/
