@@ -14,7 +14,6 @@ glacier_visualization/src/cache/*
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
