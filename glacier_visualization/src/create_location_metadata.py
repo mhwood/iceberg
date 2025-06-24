@@ -45,7 +45,6 @@ def write_glacier_loc_to_loc_file(data, output_path: str):
     df = pd.DataFrame(data, columns=['x', 'y', 'row', 'col', 'name'])
     df.to_csv(os.path.join(output_path, 'glacier_loc.csv'))
 
-
 def look_up_nearest_coastline_point(x, y, coastline_points, gate_name):
     min_loc = (-1, -1, 100000)
     for row in coastline_points:
@@ -54,8 +53,17 @@ def look_up_nearest_coastline_point(x, y, coastline_points, gate_name):
             min_loc = (row[0], row[1], distance)
     return int(min_loc[0]), int(min_loc[1]), gate_name
 
+def look_up_nearest_coastline_point_with_depth(x, y, depth, depth_threshold, coastline_points, gate_name):
+    min_loc = (-1, -1, 100000)
+    for row in coastline_points:
+        distance = get_distance(int(row[0]), int(row[1]), x, y)
+        if distance < min_loc[2]:
+            if depth[int(row[0]), int(row[1])] < depth_threshold:
+                min_loc = (row[0], row[1], distance)
+    return int(min_loc[0]), int(min_loc[1]), gate_name
 
-def create_calving_location_grid(glacier_location_list, coastline_points):
+
+def create_calving_location_grid(input_folder, glacier_location_list, coastline_points):
     output_grid = []
     counter = 1
 
@@ -63,7 +71,15 @@ def create_calving_location_grid(glacier_location_list, coastline_points):
         row, col, name = look_up_nearest_coastline_point(glacier_location_list[glacier][2],
                                                          glacier_location_list[glacier][3], coastline_points,
                                                          glacier_location_list[glacier][4])
-        # print(glacier+' ('+str(glacier)+')')
+
+        # bathy = np.fromfile(os.path.join(input_folder, 'greenland_bathymetry.bin'), '>f4').reshape((360, 180))
+        # depth = -1*bathy
+        # row, col, name = look_up_nearest_coastline_point_with_depth(glacier_location_list[glacier][2],
+        #                                                             glacier_location_list[glacier][3],
+        #                                                             depth, 100,
+        #                                                             coastline_points,
+        #                                                             glacier_location_list[glacier][4])
+
 
         # for i in range(len(rows)):
         # multiple glaciers can calve into the same spot
@@ -99,7 +115,7 @@ if __name__ == "__main__":
     mapped = mapping_to_row_and_col(locations, grid_path, 360, 180)
 
     coastline_points = np.load(os.path.join(input_folder, 'coast_line_points.npy'), allow_pickle=True)
-    mapped_points = create_calving_location_grid(coastline_points=coastline_points, glacier_location_list=mapped)
+    mapped_points = create_calving_location_grid(input_folder, coastline_points=coastline_points, glacier_location_list=mapped)
     df_mapped = pd.DataFrame(mapped_points, columns=['index', 'mapped_row', 'mapped_col', 'name'])
     df_original = pd.DataFrame(mapped, columns=['x', 'y', 'row', 'col', 'name'])
 

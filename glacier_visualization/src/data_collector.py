@@ -137,10 +137,10 @@ class DataCollector:
     def get_glacier_dimension(self, gate_number):
         name = self.get_glacier_name(gate_number)
         file_path = os.path.join(input_dir, 'calving_schedules','1992')
-        origin = datetime.datetime(1992, 1, 15)
+        origin = datetime.datetime(1992, 1, 1)
         file = os.path.join(file_path, f'calving_schedule_{self.get_gate_index(gate_number)}')
         df = np.fromfile(file, '>f8')
-        df = df.reshape((int(len(df) / 4), 4))
+        df = df.reshape((4, int(len(df) / 4))).T
         df = df[np.where(df[:, 0] != 0)]
         time = origin + pd.to_timedelta(df[:, 0], unit='s')
 
@@ -150,10 +150,10 @@ class DataCollector:
         gate_name = self.get_full_glacier_name(gate_number)
         ds = nc4.Dataset(os.path.join(data_dir, 'Iceberg Size Distribution.nc'))
         vol = np.array(ds[gate_name]['volume'])
-        count = np.array(ds[gate_name]['iceberg_count'][0, :])
+        count = np.array(ds[gate_name]['iceberg_count'][year-1990, :])
         data = np.stack([vol, count], axis=1)
         data = data[data[:,1] != 0]
-        data = np.log(data)
+        data = np.log10(data)
         data = data[data[:, 1] != 0]
         return data
 

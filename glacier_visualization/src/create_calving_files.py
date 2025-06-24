@@ -203,21 +203,6 @@ def write_calving_location_file(output_path, output_table):
     f.close()
 
 
-# def write_calving_reference_file(config_dir, glacier_location_dict):
-#
-#     output = 'Glacier,Row,Col'
-#     for glacier in glacier_location_dict:
-#         rows = glacier_location_dict[glacier][0]
-#         cols = glacier_location_dict[glacier][1]
-#         for i in range(len(rows)):
-#             output+='\n'+glacier+','+str(rows[i])+','+str(cols[i])
-#
-#     output_file = os.path.join(config_dir,'L2',model_name,'input','Calving Location Reference File.csv')
-#     f = open(output_file,'w')
-#     f.write(output)
-#     f.close()
-#     a=1
-
 def compute_size_distribution(total_volume):
     # set a fixed number of icebergs
     N = 1000
@@ -276,7 +261,6 @@ def generate_timeseries(glacier_number, years, v, count, N, model_start_date=dat
     full_lengths = np.zeros((len(years), N))
     full_thicknesses = np.zeros((len(years),N))
     full_volumes = np.zeros((len(years), N))
-
 
     for year in years:
         start_time = (datetime(year, 1, 1) - model_start_date).total_seconds()
@@ -359,10 +343,18 @@ def create_calving_schedules(output_path, years, calving_timeseries, outlet_id, 
         if str(year) not in os.listdir(os.path.join(output_path, 'calving_schedules')):
             os.mkdir(os.path.join(output_path,'calving_schedules', str(year)))
         year_index = year - years[0]
+
         times = full_times[year_index, :]
         widths = full_widths[year_index, :]
         lengths = full_lengths[year_index, :]
         thicknesses = full_thicknesses[year_index, :]
+
+        # sort each array by the times array
+        indices = np.argsort(times)
+        times = times[indices]
+        widths = widths[indices]
+        lengths = lengths[indices]
+        thicknesses = thicknesses[indices]
 
         output_schedules = np.array(np.column_stack((times, widths, lengths, thicknesses))).T
         output_schedules.ravel('C').astype('>f8').tofile(
@@ -436,7 +428,7 @@ if __name__ == "__main__":
     print('         - Identified ' + str(np.shape(output_table)[0]) + ' calving locations')
     write_calving_location_file(input_folder, output_table)
 
-    print('    - Reading in calving timeseries')
+    print('    - Reading in calving distributions')
     glacier_names, years, volumes, all_calving_distributions = read_calving_distributions_from_nc(input_folder)
 
     # compute the maxiumum number of icebergs from any glacier in any one year

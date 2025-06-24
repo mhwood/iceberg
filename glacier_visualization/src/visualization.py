@@ -85,7 +85,7 @@ body = html.Div(
                         ),
                         html.Div(
                             [
-                                html.B('Average Ice Count:'),
+                                html.B('Total Iceberg Count:'),
                                 html.Div(id='glacier-metadata-average-ice-count')
                             ],
                             className='glacier-metadata'
@@ -413,7 +413,7 @@ def iceberg_count_plot(value):
 def iceberg_count_logged_plot(value):
     data = collector.get_log_count_by_year(value)
     fig = go.Figure(
-        go.Scatter(
+        go.Bar(
             x=data[:, 0],
             y=data[:, 1]
         )
@@ -442,22 +442,22 @@ def glacier_dimensions_plot(value):
     fig.add_trace(
         go.Scatter(
             x=time,
-            y=df[:, 1]
-        ), row=1, col=1
+            y=df[:, 1], mode='markers',
+        ), row=1, col=1,
     )
 
     fig.add_trace(
         go.Scatter(
             x=time,
-            y=df[:, 2]
-        ), row=2, col=1
+            y=df[:, 2], mode='markers',
+        ), row=2, col=1,
     )
 
     fig.add_trace(
         go.Scatter(
             x=time,
-            y=df[:, 3]
-        ), row=3, col=1
+            y=df[:, 3], mode='markers',
+        ), row=3, col=1,
     )
 
     fig.update_layout(

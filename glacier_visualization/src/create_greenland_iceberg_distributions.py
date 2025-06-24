@@ -108,7 +108,7 @@ def compute_iceberg_size_distribution(total_volume_flux, printing=False):
     return (v, number_of_bergs)
 
 
-def compute_size_distributions(glacier_names, flux_timeseries, printing=True):
+def compute_size_distributions(glacier_names, flux_timeseries, printing=False):
     start_year = 1990
     end_year = 2020
 
@@ -119,8 +119,8 @@ def compute_size_distributions(glacier_names, flux_timeseries, printing=True):
     years = np.arange(start_year, end_year + 1)
 
     for g in range(len(glacier_names)):
-        if printing:
-            print(' - Working on glacier ' + str(glacier_names[g]))
+        #if printing:
+        print(' - Working on glacier ' + str(glacier_names[g]))
         timeseries = flux_timeseries[g]
 
         for year in range(start_year, end_year + 1):
