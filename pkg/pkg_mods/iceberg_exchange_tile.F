@@ -25,11 +25,11 @@ C     ==================================================================
 C     Routine arguements
       INTEGER myThid
 
+#ifdef ALLOW_USE_MPI
+
 C     Local arguments
       INTEGER ib_n
       CHARACTER*(MAX_LEN_MBUF) msgBuf
-      _RL ib_i_org
-      _RL ib_uvel_org, ib_vvel_org
 
 C     MPI Stuff
       INTEGER proc_id, ierr, status(MPI_STATUS_SIZE)
@@ -51,6 +51,7 @@ C     MPI Stuff
 
        DO ib_n=1,ib_Tot
 
+C       What is this message for?
         CALL MPI_COMM_RANK (MPI_COMM_WORLD, proc_id, ierr)
         message(:)=777.7
 
@@ -126,6 +127,8 @@ C------------------------------------------------------------
 
       ENDIF  ! ib_Tot > 0
 
+
+#endif /* ALLOW_USE_MPI */
 
       RETURN
       END

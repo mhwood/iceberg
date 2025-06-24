@@ -46,7 +46,9 @@ c     == Local arguements ==
       _RL ib_iT, ib_jT
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER proc_id, num_procs
+#ifdef ALLOW_USE_MPI
       INTEGER ierr, status(MPI_STATUS_SIZE)
+#endif
 
 
 #ifdef ICEBERG_DIAG_ON
@@ -57,9 +59,14 @@ c     == Local arguements ==
       ENDIF
 #endif
 
+#ifdef ALLOW_USE_MPI
 C     MPI: FIND PROCESS ID and HOW MANY PROCESSES STARTED
       call MPI_COMM_RANK (MPI_COMM_WORLD, proc_id, ierr)
       call MPI_COMM_SIZE (MPI_COMM_WORLD, num_procs, ierr)
+#else
+      num_procs=1
+      proc_id=0
+#endif
 
 
 #ifdef ALLOW_ICEBERG_SUBMERGED_MELT
@@ -111,11 +118,13 @@ C--   CALVE ICEBERGS
         CALL ICEBERG_CALVE ( myTime, myIter, myThid )
 #endif
 
+#ifdef ALLOW_USE_MPI
 C--   EXCHANGE ICEBERG BETWEEN TILES (if MPI)
       IF (num_procs.GT.1) THEN
 C      Between tiles 
        CALL ICEBERG_EXCHANGE_TILE ( myThid )
       ENDIF
+#endif
 
 C--   REMOVE MELTED ICEBERGS
       CALL ICEBERG_REMOVE ( myIter, myThid )

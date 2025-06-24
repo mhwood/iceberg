@@ -104,7 +104,10 @@ C                                :: 0 for EastWest, default is -9999
       PARAMETER(ICEBERGlatentHeat       =  334.0 _d 3)
       PARAMETER(ICEBERGHeatCapacity_Cp  = 2000.0 _d 0)
 
+
       INTEGER proc_id, ierr, num_procs
+
+
 
 #ifdef ALLOW_PTRACERS
 #ifdef ALLOW_MELT_DYE
@@ -122,9 +125,16 @@ C                                :: 0 for EastWest, default is -9999
       ENDIF
 #endif
 
+#ifndef ALLOW_USE_MPI
+      proc_id=0
+      num_procs=1
+#endif
+
       eps5 = mass2rUnit/HeatCapacity_Cp
 
+#ifdef ALLOW_USE_MPI
       call MPI_COMM_RANK (MPI_COMM_WORLD, proc_id, ierr)
+#endif
 
 C -----------------------------------------
 C Enter into loops

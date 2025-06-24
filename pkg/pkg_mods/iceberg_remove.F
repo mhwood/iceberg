@@ -21,11 +21,7 @@ C     ==================================================================
 #include "PARAMS.h"
 #include "DYNVARS.h"
 #include "ICEBERG.h"
-c#include "SEAICE.h"
 #include "EXCH.h"
-#ifdef ALLOW_EXF
-# include "EXF_FIELDS.h"
-#endif
 
 C     routine arguements
       INTEGER myThid
@@ -38,9 +34,6 @@ C     local arguements
       _RL tmp_list(NUMBER_OF_BERGS,13)
       INTEGER pos
 
-C     MPI Stuff
-      INTEGER proc_id, ierr, status(MPI_STATUS_SIZE)
-      _RL message(1)
 
 C    Clear data in arrays
       tmp_list_I(:,:) = 0
