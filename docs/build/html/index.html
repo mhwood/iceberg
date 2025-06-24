@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>iceberg documentation &mdash; iceberg  documentation</title>
+  <title>iceberg Documentation &mdash; iceberg  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="usage/usage.html" /> 
+    <link rel="next" title="1. Usage" href="usage/usage.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,15 +41,13 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">iceberg documentation</a></li>
-<li><a class="reference internal" href="#installation">Installation</a><ul>
-<li><a class="reference internal" href="#documentation-contents">Documentation Contents</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="usage/usage.html">1. Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model/model_overview.html">2. The iceberg Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_models/configurations.html">3. Model Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities/overview.html">4. Utilities</a></li>
 </ul>
-</li>
-</ul>
-</div>
+
         </div>
       </div>
     </nav>
@@ -64,7 +62,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">iceberg documentation</li>
+      <li class="breadcrumb-item active">iceberg Documentation</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -75,17 +73,46 @@
            <div itemprop="articleBody">
              
   <section id="iceberg-documentation">
-<h1>iceberg documentation<a class="headerlink" href="#iceberg-documentation" title="Link to this heading"></a></h1>
-<p>Add your content using <code class="docutils literal notranslate"><span class="pre">reStructuredText</span></code> syntax. See the
-<a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">reStructuredText</a>
-documentation for details.</p>
+<h1>iceberg Documentation<a class="headerlink" href="#iceberg-documentation" title="Link to this heading"></a></h1>
+<p>Welcome to the documentation page for the development of an iceberg model for MITgcm. This
+documentation reflects the MITgcm package, example configurations, and associated tools
+provided on the <a class="reference external" href="https://github.com/mhwood/iceberg">iceberg</a> Github repository.</p>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading"></a></h2>
+<p>Icebergs represent an import forcing on ocean properties around ice sheets. However, they are
+not currently built into MITgcm in package wide range of applications that can be used across
+scales from fjord-scale models to global circulation models. In this project, our goal is
+to create a general iceberg package that fit this need.</p>
 </section>
-<section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<section id="existing-iceberg-packages">
+<h2>Existing iceberg Packages<a class="headerlink" href="#existing-iceberg-packages" title="Link to this heading"></a></h2>
+<p>Currently, there are two iceberg packages that have been developed and used in MITgcm.</p>
 <section id="documentation-contents">
-<span id="iceberg-advection"></span><h2>Documentation Contents<a class="headerlink" href="#documentation-contents" title="Link to this heading"></a></h2>
+<span id="iceberg-advection"></span><h3>Documentation Contents<a class="headerlink" href="#documentation-contents" title="Link to this heading"></a></h3>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage/usage.html">1. Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/usage.html#installing-iceberg-in-mitgcm">1.1. Installing iceberg in MITgcm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/usage.html#using-the-iceberg-package">1.2. Using the iceberg package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="model/model_overview.html">2. The iceberg Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="model/advection.html">2.1. Advection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model/melt.html">2.2. Iceberg Melting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sample_models/configurations.html">3. Model Configurations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sample_models/single_berg/single_berg_overview.html">3.1. Single Iceberg Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sample_models/north_atlantic/north_atlantic_overview.html">3.2. North Atlantic Regional Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities/overview.html">4. Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utilities/overview.html#glacier-visualization">4.1. Glacier Visualization</a></li>
+</ul>
+</li>
+</ul>
 </div>
+</section>
 </section>
 </section>
 
@@ -93,13 +120,13 @@ documentation for details.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="usage/usage.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="usage/usage.html" class="btn btn-neutral float-right" title="1. Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Michael H. Wood.</p>
+    <p>&#169; Copyright 2025, Mike Wood.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

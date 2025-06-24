@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'iceberg'
-copyright = '2025, Michael H. Wood'
+copyright = '2025, Mike Wood'
 author = 'Michael H. Wood,  Manh T. Nguyen'
 
 # -- General configuration ---------------------------------------------------

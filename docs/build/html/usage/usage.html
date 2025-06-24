@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&lt;no title&gt; &mdash; iceberg  documentation</title>
+  <title>1. Usage &mdash; iceberg  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="&lt;no title&gt;" href="../auto_pipeline/pipeline.html" />
-    <link rel="prev" title="iceberg documentation" href="../index.html" /> 
+    <link rel="prev" title="iceberg Documentation" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,10 +42,18 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul class="simple">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-iceberg-in-mitgcm">1.1. Installing iceberg in MITgcm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-iceberg-package">1.2. Using the iceberg package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compile-time-considerations">1.2.1. Compile-time Considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-time-considerations">1.2.2. Run-time Considerations</a></li>
 </ul>
-</div>
+</li>
+</ul>
+</li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -60,7 +68,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="breadcrumb-item active"><span class="section-number">1. </span>Usage</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/usage/usage.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,19 +78,68 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
+  <section id="usage">
+<h1><span class="section-number">1. </span>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<p>The main feature of the this project is the iceberg package itself, but there are also a
+variety of tools provided with this repository that are useful. Here, we start by detailing
+how to implement the iceberg package into your own MITgcm simulation. Then, we describe some
+of the other tools and how to use them.</p>
+<section id="installing-iceberg-in-mitgcm">
+<h2><span class="section-number">1.1. </span>Installing iceberg in MITgcm<a class="headerlink" href="#installing-iceberg-in-mitgcm" title="Link to this heading"></a></h2>
+<p>To add the iceberg package in your version of MITgcm, it is recommended that you first clone
+a fresh, recent version of MITgcm:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/MITgcm/MITgcm</span>
+</pre></div>
+</div>
+<p>Then, clone the iceberg repository:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/mhwood/iceberg</span>
+</pre></div>
+</div>
+<p>Next, we just need to implement the package into your clone of MITgcm using the python utilities
+provided with the iceberg repository:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cd iceberg/utils</span>
+<span class="go">python copy_iceberg_pkg_to_mitgcm.py -m /path/to/MITgcm -c /path/to/code/mods/dir</span>
+</pre></div>
+</div>
+<p>The path to MITgcm is provided so that the iceberg files are added in the package directory. The
+path to the code modifications directory is provided because there are several updates to the standard
+MITgcm boot sequence and source files required for this package.</p>
+</section>
+<section id="using-the-iceberg-package">
+<h2><span class="section-number">1.2. </span>Using the iceberg package<a class="headerlink" href="#using-the-iceberg-package" title="Link to this heading"></a></h2>
+<p>As for all MITgcm packages, there are both compile time and run time requirements for the iceberg package.</p>
+<section id="compile-time-considerations">
+<h3><span class="section-number">1.2.1. </span>Compile-time Considerations<a class="headerlink" href="#compile-time-considerations" title="Link to this heading"></a></h3>
+<p>There are two compile time files to consider:</p>
+<p>ICEBERG_OPTIONS.h</p>
+<p>Contains many options to turn on or off different parts of the compiled code.</p>
+<p>ICEBERG_SIZE.h</p>
+<p>Defines the maximum number of icebergs that can exist in a simulation,
+the length of the calving schedule, and the number of calving locations.
+Each of these parameters sets the size of an array and associated loops in the compiled code.</p>
+</section>
+<section id="run-time-considerations">
+<h3><span class="section-number">1.2.2. </span>Run-time Considerations<a class="headerlink" href="#run-time-considerations" title="Link to this heading"></a></h3>
+<p>There are several files to consider at run time:</p>
+<p>data.iceberg
+calving_locations.txt
+calving schedules</p>
+</section>
+</section>
+</section>
+
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="iceberg documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="iceberg Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../auto_pipeline/pipeline.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Michael H. Wood.</p>
+    <p>&#169; Copyright 2025, Mike Wood.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
