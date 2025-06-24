@@ -12,6 +12,16 @@ __pycache__/
 glacier_visualization/src/data/calving_schedules/*
 glacier_visualization/src/cache/*
 
+# make sure the model data isn't pushed
+example_configs/*/run/*
+example_configs/*/input/*IC
+example_configs/*/input/*.bin
+example_configs/*/input/*.txt
+example_configs/*/input/*/exf
+example_configs/*/input/*/obcs
+example_configs/*/input/*/calving_schedules
+example_configs/*/run
+
 # Distribution / packaging
 .Python
 develop-eggs/
