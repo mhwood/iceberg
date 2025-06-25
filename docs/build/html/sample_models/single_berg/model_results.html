@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.1.3. Model Results &mdash; iceberg  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="3.2. North Atlantic Regional Model" href="../north_atlantic/north_atlantic_overview.html" />
+    <link rel="prev" title="3.1.2. Running the Single Iceberg Model" href="running_the_model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            iceberg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../usage/usage.html">1. Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model/model_overview.html">2. The iceberg Model</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../configurations.html">3. Model Configurations</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="single_berg_overview.html">3.1. Single Iceberg Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="model_setup.html">3.1.1. Model Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_the_model.html">3.1.2. Running the Single Iceberg Model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.1.3. Model Results</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Model-Results-Without-Meltwater">3.1.3.1. Model Results Without Meltwater</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../north_atlantic/north_atlantic_overview.html">3.2. North Atlantic Regional Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities/overview.html">4. Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">iceberg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../configurations.html"><span class="section-number">3. </span>Model Configurations</a></li>
+          <li class="breadcrumb-item"><a href="single_berg_overview.html"><span class="section-number">3.1. </span>Single Iceberg Model</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.1.3. </span>Model Results</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/sample_models/single_berg/model_results.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Model-Results">
+<h1><span class="section-number">3.1.3. </span>Model Results<a class="headerlink" href="#Model-Results" title="Link to this heading"></a></h1>
+<p>Here, we investigate the results of the model in two different runs with and without the feedback of meltwater into the system.</p>
+<p>Begin by importing some necessary modules:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[131]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+<section id="Model-Results-Without-Meltwater">
+<h2><span class="section-number">3.1.3.1. </span>Model Results Without Meltwater<a class="headerlink" href="#Model-Results-Without-Meltwater" title="Link to this heading"></a></h2>
+<p>First, we will take a look at the model results with meltwater turned off. Note that the iceberg will still melt throughout the model run, but it will not induce changes in the temperature, salinity, and momentum fields of the model.</p>
+<p>For reading and plotting purposes, define the parameters the model grid and the iceberg model implementation:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[132]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># model grid parameters</span>
+<span class="n">n_rows</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">n_cols</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">n_depth_levels</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">max_number_of_icebergs</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">model_timestep</span> <span class="o">=</span> <span class="mi">60</span>
+
+<span class="c1"># vertical cell dimensions defined in the data file</span>
+<span class="n">delR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>   <span class="mf">1.00</span><span class="p">,</span>    <span class="mf">1.14</span><span class="p">,</span>    <span class="mf">1.30</span><span class="p">,</span>    <span class="mf">1.49</span><span class="p">,</span>   <span class="mf">1.70</span><span class="p">,</span>
+                    <span class="mf">1.93</span><span class="p">,</span>    <span class="mf">2.20</span><span class="p">,</span>    <span class="mf">2.50</span><span class="p">,</span>    <span class="mf">2.84</span><span class="p">,</span>   <span class="mf">3.21</span><span class="p">,</span>
+                    <span class="mf">3.63</span><span class="p">,</span>    <span class="mf">4.10</span><span class="p">,</span>    <span class="mf">4.61</span><span class="p">,</span>    <span class="mf">5.18</span><span class="p">,</span>   <span class="mf">5.79</span><span class="p">,</span>
+                    <span class="mf">6.47</span><span class="p">,</span>    <span class="mf">7.20</span><span class="p">,</span>    <span class="mf">7.98</span><span class="p">,</span>    <span class="mf">8.83</span><span class="p">,</span>   <span class="mf">9.73</span><span class="p">,</span>
+                   <span class="mf">10.69</span><span class="p">,</span>   <span class="mf">11.70</span><span class="p">,</span>   <span class="mf">12.76</span><span class="p">,</span>   <span class="mf">13.87</span><span class="p">,</span>  <span class="mf">15.03</span><span class="p">,</span>
+                   <span class="mf">16.22</span><span class="p">,</span>   <span class="mf">17.45</span><span class="p">,</span>   <span class="mf">18.70</span><span class="p">,</span>   <span class="mf">19.97</span><span class="p">,</span>  <span class="mf">21.27</span><span class="p">,</span>
+                   <span class="mf">22.56</span><span class="p">,</span>   <span class="mf">23.87</span><span class="p">,</span>   <span class="mf">25.17</span><span class="p">,</span>   <span class="mf">26.46</span><span class="p">,</span>  <span class="mf">27.74</span><span class="p">,</span>
+                   <span class="mf">29.00</span><span class="p">,</span>   <span class="mf">30.24</span><span class="p">,</span>   <span class="mf">31.45</span><span class="p">,</span>   <span class="mf">32.65</span><span class="p">,</span>  <span class="mf">33.82</span><span class="p">,</span>
+                   <span class="mf">34.97</span><span class="p">,</span>   <span class="mf">36.09</span><span class="p">,</span>   <span class="mf">37.20</span><span class="p">,</span>   <span class="mf">38.29</span><span class="p">,</span>  <span class="mf">39.37</span><span class="p">,</span>
+                   <span class="mf">40.45</span><span class="p">,</span>   <span class="mf">41.53</span><span class="p">,</span>   <span class="mf">42.62</span><span class="p">,</span>   <span class="mf">43.73</span><span class="p">,</span>  <span class="mf">44.87</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<p>Next, define the location of the run directory:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[133]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">run_dir</span> <span class="o">=</span> <span class="s1">&#39;../../../../example_configs/single_stationary_berg/run&#39;</span>
+</pre></div>
+</div>
+</div>
+<p>Now read in the iceberg files generated during the model run. Note that the model was run for 270 days in this model run (different than the default timesteps provided with the model file examples on Github):</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[129]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># make lists to hold the dimensions</span>
+<span class="n">timesteps</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">widths</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">thicknesses</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">freeboards</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># read in the dimensions one by one</span>
+<span class="k">for</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_dir</span><span class="p">,</span><span class="s1">&#39;diags&#39;</span><span class="p">,</span><span class="s1">&#39;iceberg&#39;</span><span class="p">))):</span>
+    <span class="k">if</span> <span class="n">file_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;iceberg&#39;</span><span class="p">):</span>
+        <span class="n">output_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_dir</span><span class="p">,</span><span class="s1">&#39;diags&#39;</span><span class="p">,</span><span class="s1">&#39;iceberg&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">),</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+        <span class="n">output_grid</span> <span class="o">=</span> <span class="n">output_grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">15</span><span class="p">,</span> <span class="n">max_number_of_icebergs</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">timesteps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">file_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="n">widths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+        <span class="n">thicknesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
+        <span class="n">freeboards</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">])</span>
+
+<span class="c1"># convert time to days</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span><span class="o">*</span><span class="n">model_timestep</span><span class="o">/</span><span class="mi">86400</span>
+</pre></div>
+</div>
+</div>
+<p>Plot the iceberg dimensions through time:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[137]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Width&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Length&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">thicknesses</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Thickness&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">time</span><span class="p">)])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Model Days&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Dimension (m)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/sample_models_single_berg_model_results_9_0.png" src="../../_images/sample_models_single_berg_model_results_9_0.png" />
+</div>
+</div>
+<p>As we can see, the iceberg steadily melts throughout the model run. When we get to the summer time, the vertical melt rate increases due to enhanced atmospheric, solar, and wave erosion melting. We can observe the breakdown in the melt rate components from the output of the model. First, read in the different melt components:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[138]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># make empty array for each melt time</span>
+<span class="n">melt_atm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">max_number_of_icebergs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span>
+<span class="n">melt_solar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">max_number_of_icebergs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span>
+<span class="n">melt_wave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">max_number_of_icebergs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span>
+<span class="n">melt_submarine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">max_number_of_icebergs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">n_depth_levels</span><span class="p">))</span>
+
+<span class="c1"># read in the dimensions one by one</span>
+<span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">timestep</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timesteps</span><span class="p">):</span>
+
+    <span class="c1"># read in the melt rate due to atmospheric convection</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;IBMATMCV.&#39;</span><span class="o">+</span><span class="s1">&#39;</span><span class="si">{:010d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.bin&#39;</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_dir</span><span class="p">,</span><span class="s1">&#39;diags&#39;</span><span class="p">,</span><span class="s1">&#39;IBMATMCV&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">),</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">output_grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_number_of_icebergs</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">melt_atm</span><span class="p">[:,</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+
+    <span class="c1"># read in the melt rate due to solar radiation</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;IBMSOLAR.&#39;</span><span class="o">+</span><span class="s1">&#39;</span><span class="si">{:010d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.bin&#39;</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_dir</span><span class="p">,</span><span class="s1">&#39;diags&#39;</span><span class="p">,</span><span class="s1">&#39;IBMSOLAR&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">),</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">output_grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_number_of_icebergs</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">melt_solar</span><span class="p">[:,</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+
+    <span class="c1"># read in the melt rate due to wave erosion</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;IBMWVESN.&#39;</span><span class="o">+</span><span class="s1">&#39;</span><span class="si">{:010d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.bin&#39;</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_dir</span><span class="p">,</span><span class="s1">&#39;diags&#39;</span><span class="p">,</span><span class="s1">&#39;IBMWVESN&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">),</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">output_grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_number_of_icebergs</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">melt_wave</span><span class="p">[:,</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+
+    <span class="c1"># read in the melt rate due to submarine melt</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;IBMSUBPF.&#39;</span><span class="o">+</span><span class="s1">&#39;</span><span class="si">{:010d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.bin&#39;</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_dir</span><span class="p">,</span><span class="s1">&#39;diags&#39;</span><span class="p">,</span><span class="s1">&#39;IBMSUBPF&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">),</span><span class="s1">&#39;&gt;f8&#39;</span><span class="p">)</span>
+    <span class="n">output_grid</span> <span class="o">=</span> <span class="n">output_grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n_depth_levels</span><span class="p">,</span> <span class="n">max_number_of_icebergs</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">melt_submarine</span><span class="p">[:,</span><span class="n">t</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">output_grid</span>
+</pre></div>
+</div>
+</div>
+<p>Next, plot the melt components on a single plot for comparison. Note that submarine melt is depth-resolved, so this plot is shown with a colormap:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[140]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">iceberg_number</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mi">86400</span><span class="o">*</span><span class="n">melt_atm</span><span class="p">[</span><span class="n">iceberg_number</span><span class="p">,:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Atmospheric</span><span class="se">\n</span><span class="s1">Convective Melt (m/day)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">time</span><span class="p">)])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mi">86400</span><span class="o">*</span><span class="n">melt_solar</span><span class="p">[</span><span class="n">iceberg_number</span><span class="p">,:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Atmospheric</span><span class="se">\n</span><span class="s1"> Radiative Melt (m/day)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">time</span><span class="p">)])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mi">86400</span><span class="o">*</span><span class="n">melt_wave</span><span class="p">[</span><span class="n">iceberg_number</span><span class="p">,:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Wave Erosion (m/day)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">time</span><span class="p">)])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">melt_array</span> <span class="o">=</span> <span class="mi">86400</span><span class="o">*</span><span class="n">melt_submarine</span><span class="p">[</span><span class="n">iceberg_number</span><span class="p">,:,:]</span><span class="o">.</span><span class="n">T</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">delR</span><span class="p">),</span><span class="n">melt_array</span><span class="p">,</span>
+                   <span class="n">shading</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;turbo&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">melt_array</span><span class="p">[</span><span class="n">melt_array</span><span class="o">!=</span><span class="mi">0</span><span class="p">]))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">freeboards</span><span class="p">,</span> <span class="s1">&#39;w-&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">thicknesses</span><span class="p">),</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">time</span><span class="p">)])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Model Days&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Depth (m)&#39;</span><span class="p">)</span>
+
+<span class="c1"># make a freeboard mask</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">freeboards</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">delR</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+
+<span class="c1"># add a colorbar</span>
+<span class="n">cbar_ax_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.92</span><span class="p">,</span> <span class="mf">0.12</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">]</span>
+<span class="n">cbar_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">cbar_ax_bbox</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cbar_ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;m/day&#39;</span><span class="p">)</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/sample_models_single_berg_model_results_13_0.png" src="../../_images/sample_models_single_berg_model_results_13_0.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="running_the_model.html" class="btn btn-neutral float-left" title="3.1.2. Running the Single Iceberg Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../north_atlantic/north_atlantic_overview.html" class="btn btn-neutral float-right" title="3.2. North Atlantic Regional Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mike Wood.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
