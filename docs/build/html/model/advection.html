@@ -17,6 +17,8 @@
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -47,7 +49,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../usage/usage.html">1. Usage</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="model_overview.html">2. The iceberg Model</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">2.1. Advection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#diagram-of-influence-forces">2.1.1. Diagram of influence forces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dynamical-framework">2.1.1. Dynamical Framework</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#drag-forces">2.1.2. Drag Forces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#water-drag-force">2.1.3. Water Drag Force</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iceberg-keel-model">2.1.4. Iceberg Keel Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-level-ocean-drag">2.1.5. Multi Level Ocean Drag</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="melt.html">2.2. Iceberg Melting</a></li>
@@ -87,10 +93,155 @@
 <h1><span class="section-number">2.1. </span>Advection<a class="headerlink" href="#advection" title="Link to this heading"></a></h1>
 <p>This is the module that simulate the movement of the iceberg using external conditions and physical characteristic of
 the ocean.</p>
-<section id="diagram-of-influence-forces">
-<h2><span class="section-number">2.1.1. </span>Diagram of influence forces<a class="headerlink" href="#diagram-of-influence-forces" title="Link to this heading"></a></h2>
-<a class="reference internal image-reference" href="../_images/IceBergAdvection.png"><img alt="Diagram of influence forces" src="../_images/IceBergAdvection.png" style="width: 400px;" />
-</a>
+<section id="dynamical-framework">
+<h2><span class="section-number">2.1.1. </span>Dynamical Framework<a class="headerlink" href="#dynamical-framework" title="Link to this heading"></a></h2>
+<img alt="Iceberg's equation of motion" src="../_images/IceBergAdvection.jpg" />
+<div class="line-block">
+<div class="line">The motion of the iceberg (dragging force) is modeled using Newton’s second law, with forces including water drag, air drag, Coriolis, and pressure gradients as in Figure 1. The motion is calculated in both horizontal (ib_FU) and vertical (ib_FV) directions.</div>
+</div>
+<div class="line-block">
+<div class="line">By default, the iceberg’s distance traveled and the dragging force’s velocity are calculated using the following formulas:</div>
+</div>
+<div class="math notranslate nohighlight">
+\[\text{dist}_i = \frac{%
+    \text{ib_uVel}(n) \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)
+    + 0.5 \cdot \text{ib_FU} \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)^2%
+}{\text{ib_dxC}}\]</div>
+<div class="math notranslate nohighlight">
+\[\text{dist}_j = \frac{%
+    \text{ib_vVel}(n) \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)
+    + 0.5 \cdot \text{ib_FV} \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)^2%
+}{\text{ib_dyC}}\]</div>
+<div class="math notranslate nohighlight">
+\[\text{ib_uVel}(n) = \text{ib_uVel}(n) + \text{ib_FU} \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)\]</div>
+<div class="math notranslate nohighlight">
+\[\text{ib_vVel}(n) = \text{ib_vVel}(n) + \text{ib_FV} \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)\]</div>
+<div class="line-block">
+<div class="line">Notations:</div>
+</div>
+<ul class="simple">
+<li><p>Δt: Model tracer timesteps (as set in the <code class="docutils literal notranslate"><span class="pre">namelist/data</span></code> file).</p></li>
+<li><p>Δt<sub>ice</sub>: The number of iceberg timesteps to every one model tracer timestep (as set in <code class="docutils literal notranslate"><span class="pre">namelist/data.iceberg</span></code> file). The default is 10 timesteps.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ib_FU</span></code>: The horizontal dragging force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ib_FV</span></code>: The vertical dragging force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ib_dxC</span></code>: interpolated spacing of dx at iceberg.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ib_dyC</span></code>: interpolated spacing of dy at iceberg.</p></li>
+</ul>
+</section>
+<section id="drag-forces">
+<h2><span class="section-number">2.1.2. </span>Drag Forces<a class="headerlink" href="#drag-forces" title="Link to this heading"></a></h2>
+<p>The drag forces are a sum of the forces acting on vertical walls (form drag) and horizontal surfaces (skin drag), determined by the general relationship:</p>
+<div class="math notranslate nohighlight">
+\[F_x = 0.5 \cdot \rho_x \cdot \left[ C_{xv} \cdot A_v + C_{xh} \cdot A_h \right] \cdot |V_x - V_i| \cdot (V_x - V_i)\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p>The subscript <span class="math notranslate nohighlight">\(x\)</span> denotes the medium:</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(a\)</span> for atmosphere</p></li>
+<li><p><span class="math notranslate nohighlight">\(w\)</span> for water (ocean)</p></li>
+<li><p><span class="math notranslate nohighlight">\(i\)</span> for sea ice</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(v\)</span> and <span class="math notranslate nohighlight">\(h\)</span> refer to:</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(v\)</span>: vertical (form drag on side walls)</p></li>
+<li><p><span class="math notranslate nohighlight">\(h\)</span>: horizontal (skin drag on the bottom)</p></li>
+</ul>
+</div></blockquote>
+<p>Note: There is no horizontal drag (<span class="math notranslate nohighlight">\(C_{ih}\)</span> term) applied for sea ice.</p>
+</section>
+<section id="water-drag-force">
+<h2><span class="section-number">2.1.3. </span>Water Drag Force<a class="headerlink" href="#water-drag-force" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The thickness of sea ice is considered in the iceberg’s draught at the surface, so that there is <strong>no water drag force</strong> applied where sea ice exists in the model (Martin and Adcroft, 2010).</p></li>
+<li><p>For the <strong>bottom of the iceberg</strong>, horizontal drag is included to represent skin drag effects (Martin and Adcroft, 2010).</p></li>
+<li><p>Icebergs are assumed to travel with their <strong>long axis (length) aligned parallel</strong> to the direction of the water velocity, which influences the projected area used in the drag calculation.</p></li>
+</ul>
+</section>
+<section id="iceberg-keel-model">
+<span id="id1"></span><h2><span class="section-number">2.1.4. </span>Iceberg Keel Model<a class="headerlink" href="#iceberg-keel-model" title="Link to this heading"></a></h2>
+<p>Calculate shape of iceberg keel (<code class="docutils literal notranslate"><span class="pre">ib_keel</span></code>) based on second order polynomial fit to the top 8 levels of the keel model of
+Barker et al. 2004) <code class="docutils literal notranslate"><span class="pre">ib_keel</span></code> is a fractional value of the absolute length at each depth. Multiply <code class="docutils literal notranslate"><span class="pre">ib_keel</span></code> by <code class="docutils literal notranslate"><span class="pre">ib_perpL</span></code> to
+get an actual size (meters) at each level in the model. The keel above and below water has the general shape:</p>
+<img alt="Keel Model illustration" src="../_images/KeelModel.png" />
+<p>The keel model will give a reduction in surface area over
+the standard tabular shape below the waterline. The keel
+area is ~77% of a tabular shape. This also alters
+the mass of the iceberg. Note that this option will also
+change the shape of the iceberg above the waterline to a two-layer sail that decreases in size with height.</p>
+<div class="line-block">
+<div class="line"><strong>Note:</strong> Keel model only used when iceberg thickness &gt; 30m to avoid prescribing unrealistic keel shapes. Below 30m thickness icebergs are assumed tabular (<code class="docutils literal notranslate"><span class="pre">ib_keel</span></code> = <strong>1</strong>)</div>
+</div>
+<p>The iceberg keel depth is computed based on the number of vertical levels the iceberg penetrates into the water column, denoted as <code class="docutils literal notranslate"><span class="pre">ib_nlvl</span></code>. This is first converted to a floating-point value:</p>
+<div class="math notranslate nohighlight">
+\[\text{ib_nlvl_rl} = \text{ib_nlvl} \cdot 1.0\]</div>
+<p>Then, a scaled quantity <span class="math notranslate nohighlight">\(\text{ib\_RL}\)</span> is computed from the level index <span class="math notranslate nohighlight">\(k\)</span> and the number of vertical levels:</p>
+<div class="math notranslate nohighlight">
+\[\text{ib_RL} = k \cdot \left( \frac{8.0}{\text{ib_nlvl_rl}} \right)\]</div>
+<p>Finally, the iceberg keel depth (<code class="docutils literal notranslate"><span class="pre">ib_keel</span></code>) is estimated using a quadratic formula based on <code class="docutils literal notranslate"><span class="pre">ib_RL</span></code>:</p>
+<div class="math notranslate nohighlight">
+\[\text{ib_keel} = -0.025 \cdot \text{ib_RL}^2 + 0.164 \cdot \text{ib_RL} + 0.78\]</div>
+<p>Here:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\text{ib_nlvl}\)</span> is the number of vertical levels the iceberg extends below the surface.</p></li>
+<li><p><span class="math notranslate nohighlight">\(k\)</span> is the current vertical level index.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\text{ib_keel}\)</span> gives the estimated keel depth (in meters or model units).</p></li>
+</ul>
+</section>
+<section id="multi-level-ocean-drag">
+<h2><span class="section-number">2.1.5. </span>Multi Level Ocean Drag<a class="headerlink" href="#multi-level-ocean-drag" title="Link to this heading"></a></h2>
+<div class="line-block">
+<div class="line">Consider ocean drag force at EVERY LEVEL in the ocean model that an iceberg penetrates. This is designed to give a more realistic advection pattern, compared to the purely surface ocean advection that is typically used in models.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Attention</strong>: Depends on the set up in <code class="docutils literal notranslate"><span class="pre">ICEBERG_OPTIONS.h</span></code> file, the model can account for the multi-level</div>
+</div>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">ALLOW_ICEBERG_MULTILEVEL</span></code> is <strong>ENABLED</strong> , the model will calculate the water drag force using the keel model (Barker et al., 2004). (<a class="reference internal" href="#iceberg-keel-model"><span class="std std-ref">Iceberg Keel Model</span></a>)</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">ALLOW_ICEBERG_MULTILEVEL</span></code> is <strong>DISABLED</strong> OR <code class="docutils literal notranslate"><span class="pre">USE_TABULAR_ICEBERGS</span></code> is <strong>ENABLED</strong>, the iceberg’s keel value <code class="docutils literal notranslate"><span class="pre">ib_keel</span></code> will be set to <strong>1</strong></p></li>
+</ul>
+<p>Water drag is calculated at each vertical level of the iceberg. The approach differs depending on whether the iceberg fully or partially penetrates the vertical cell.</p>
+<p>For levels fully penetrated by the iceberg (i.e., <span class="math notranslate nohighlight">\(k \ne \text{ib_nlvl}\)</span>), the vertical thickness of the layer is initialized as:</p>
+<div class="math notranslate nohighlight">
+\[\text{thkR} = \Delta R_k\]</div>
+<p>If sea ice is present at the surface (i.e., in the top model layer, <span class="math notranslate nohighlight">\(k = 1\)</span>), its thickness is subtracted:</p>
+<div class="math notranslate nohighlight">
+\[\text{if } k = 1 \text{ and } \text{ib_SIheff} &lt; \text{thkR}, \quad \text{thkR} = \text{thkR} - \text{ib_SIheff}\]</div>
+<p>If the resulting thickness is zero or negative, the model stops with an error.</p>
+<p>The water drag force components in the x and y directions are then computed as:</p>
+<div class="math notranslate nohighlight">
+\[\text{ib_FwU_z}(k) = 0.5 \cdot \rho_w \cdot C_{wv} \cdot \text{ib_perpL_x} \cdot \text{ib_keel} \cdot \text{thkR} \cdot V_r \cdot u_r\]</div>
+<div class="math notranslate nohighlight">
+\[\text{ib_FwV_z}(k) = 0.5 \cdot \rho_w \cdot C_{wv} \cdot \text{ib_perpL_y} \cdot \text{ib_keel} \cdot \text{thkR} \cdot V_r \cdot v_r\]</div>
+<p>For the bottom level of the iceberg (<span class="math notranslate nohighlight">\(k = \text{ib_nlvl}\)</span>), which is only <strong>partially penetrated</strong>, the effective iceberg thickness in that cell is computed by subtracting the cumulative depth from the total iceberg draft:</p>
+<div class="math notranslate nohighlight">
+\[\text{thkR} = \text{ib_dft} - \text{cumDepth}(k)\]</div>
+<p>As with the top layer, sea ice is subtracted if present:</p>
+<div class="math notranslate nohighlight">
+\[\text{if } k = 1 \text{ and } \text{ib_SIheff} &lt; \text{thkR}, \quad \text{thkR} = \text{thkR} - \text{ib_SIheff}\]</div>
+<p>If <span class="math notranslate nohighlight">\(\text{thkR} \le 0\)</span>, the model stops.</p>
+<p>In this case, drag is calculated as a combination of:
+- <strong>Form drag</strong> on the vertical sides
+- <strong>Skin drag</strong> on the horizontal bottom</p>
+<p>The x and y component drag forces become:</p>
+<div class="math notranslate nohighlight">
+\[\text{ib_FwU_z}(k) = 0.5 \cdot \rho_w \cdot \left(
+    C_{wv} \cdot \text{ib_perpL} \cdot \text{ib_keel} \cdot \text{thkR}
+    + C_{wh} \cdot \text{ib_wth} \cdot \text{ib_keel} \cdot \text{ib_lth} \cdot \text{ib_keel}
+\right) \cdot V_r \cdot u_r\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\rho_w\)</span> is water density</p></li>
+<li><p><span class="math notranslate nohighlight">\(C_{wv}\)</span> and <span class="math notranslate nohighlight">\(C_{wh}\)</span> are vertical and horizontal drag coefficients</p></li>
+<li><p><span class="math notranslate nohighlight">\(V_r\)</span> is the relative velocity magnitude between water and iceberg</p></li>
+<li><p><span class="math notranslate nohighlight">\(u_r\)</span> and <span class="math notranslate nohighlight">\(v_r\)</span> are the relative velocity components in x and y</p></li>
+<li><p><span class="math notranslate nohighlight">\(\text{ib_perpL}\)</span>, <span class="math notranslate nohighlight">\(\text{ib_wth}\)</span>, and <span class="math notranslate nohighlight">\(\text{ib_lth}\)</span> are iceberg geometry terms</p></li>
+</ul>
 </section>
 </section>
 
