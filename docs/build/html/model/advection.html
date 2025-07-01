@@ -49,11 +49,40 @@
 <li class="toctree-l1"><a class="reference internal" href="../usage/usage.html">1. Usage</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="model_overview.html">2. The iceberg Model</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">2.1. Advection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#dynamical-framework">2.1.1. Dynamical Framework</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#drag-forces">2.1.2. Drag Forces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#water-drag-force">2.1.3. Water Drag Force</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#iceberg-keel-model">2.1.4. Iceberg Keel Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#multi-level-ocean-drag">2.1.5. Multi Level Ocean Drag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#variable-notation-list">2.1.1. Variable Notation List</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#position-and-distance">2.1.1.1. Position and Distance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#velocities">2.1.1.2. Velocities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#relative-velocities">2.1.1.3. Relative Velocities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sea-ice-and-coriolis-parameters">2.1.1.4. Sea Ice and Coriolis Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mass-and-forces">2.1.1.5. Mass and Forces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wave-parameters">2.1.1.6. Wave Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sea-surface-slope">2.1.1.7. Sea Surface Slope</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#geometry-and-drag-areas">2.1.1.8. Geometry and Drag Areas</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#i-o-variables">2.1.1.9. I/O Variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#grid-and-keel-parameters">2.1.1.10. Grid and Keel Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dynamical-framework">2.1.2. Dynamical Framework</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#drag-forces">2.1.3. Drag Forces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#water-drag-force">2.1.3.1. Water Drag Force</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#iceberg-keel-model">2.1.3.2. Iceberg Keel Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#multi-level-ocean-drag">2.1.3.3. Multi Level Ocean Drag</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#air-drag-force">2.1.4. Air Drag Force</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#using-keel-model">2.1.4.1. Using Keel Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-sail-model">2.1.4.2. Using Sail Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-tabular-icebergs">2.1.4.3. Using Tabular Icebergs</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#wave-radiation-force">2.1.5. Wave Radiation Force</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sea-ice-drag">2.1.6. SEA ICE DRAG</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coriolis-force">2.1.7. Coriolis Force</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pressure-gradient-force">2.1.8. Pressure Gradient Force</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sum-forces-acting-on-iceberg">2.1.9. Sum Forces Acting On Iceberg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convert-force-to-acceleration">2.1.10. Convert Force To Acceleration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iceberg-advection">2.1.11. Iceberg Advection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#move-iceberg-on-model-grid">2.1.12. Move Iceberg On Model Grid</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="melt.html">2.2. Iceberg Melting</a></li>
@@ -93,8 +122,128 @@
 <h1><span class="section-number">2.1. </span>Advection<a class="headerlink" href="#advection" title="Link to this heading"></a></h1>
 <p>This is the module that simulate the movement of the iceberg using external conditions and physical characteristic of
 the ocean.</p>
+<section id="variable-notation-list">
+<h2><span class="section-number">2.1.1. </span>Variable Notation List<a class="headerlink" href="#variable-notation-list" title="Link to this heading"></a></h2>
+<section id="position-and-distance">
+<h3><span class="section-number">2.1.1.1. </span>Position and Distance<a class="headerlink" href="#position-and-distance" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>dist_i</strong> : distance moved in x-direction</p></li>
+<li><p><strong>dist_j</strong> : distance moved in y-direction</p></li>
+<li><p><strong>ib_iT</strong> : x position of iceberg (on tile)</p></li>
+<li><p><strong>ib_jT</strong> : y position of iceberg (on tile)</p></li>
+<li><p><strong>i1</strong> : integer value of ib_iT</p></li>
+<li><p><strong>j1</strong> : integer value of ib_jT</p></li>
+</ul>
+</section>
+<section id="velocities">
+<h3><span class="section-number">2.1.1.2. </span>Velocities<a class="headerlink" href="#velocities" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>uvel_w</strong> : zonal ocean velocity at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>vvel_w</strong> : meridional ocean velocity at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>Vel_w</strong> : absolute ocean velocity at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>uvel_a</strong> : zonal wind speed at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>vvel_a</strong> : meridional wind speed at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>Vel_a</strong> : absolute wind velocity at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>uvel_si</strong> : sea ice zonal speed at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>vvel_si</strong> : sea ice meridional speed at iceberg (m s<sup>-1</sup>)</p></li>
+</ul>
+</section>
+<section id="relative-velocities">
+<h3><span class="section-number">2.1.1.3. </span>Relative Velocities<a class="headerlink" href="#relative-velocities" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>uvel_w_r</strong> : relative zonal velocity (ocean minus iceberg) (m s<sup>-1</sup>)</p></li>
+<li><p><strong>vvel_w_r</strong> : relative meridional velocity (ocean minus iceberg) (m s<sup>-1</sup>)</p></li>
+<li><p><strong>uvel_a_r</strong> : relative zonal velocity (wind minus iceberg) (m s<sup>-1</sup>)</p></li>
+<li><p><strong>vvel_a_r</strong> : relative meridional velocity (wind minus iceberg) (m s<sup>-1</sup>)</p></li>
+<li><p><strong>uvel_si_r</strong> : relative zonal velocity (sea ice minus iceberg) (m s<sup>-1</sup>)</p></li>
+<li><p><strong>vvel_si_r</strong> : relative meridional velocity (sea ice minus iceberg) (m s<sup>-1</sup>)</p></li>
+<li><p><strong>Vel_w_r</strong> : absolute relative ocean velocity at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>Vel_a_r</strong> : absolute relative wind velocity at iceberg (m s<sup>-1</sup>)</p></li>
+<li><p><strong>Vel_si_r</strong> : absolute relative sea ice velocity at iceberg (m s<sup>-1</sup>)</p></li>
+</ul>
+</section>
+<section id="sea-ice-and-coriolis-parameters">
+<h3><span class="section-number">2.1.1.4. </span>Sea Ice and Coriolis Parameters<a class="headerlink" href="#sea-ice-and-coriolis-parameters" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>ib_SIheff</strong> : local (interpolated) height of sea ice at iceberg (m)</p></li>
+<li><p><strong>ib_SIarea</strong> : local (interpolated) concentration of sea ice at iceberg (0–1)</p></li>
+<li><p><strong>ib_cori</strong> : local (interpolated) Coriolis parameter at iceberg (rad s<sup>-1</sup>)</p></li>
+</ul>
+</section>
+<section id="mass-and-forces">
+<h3><span class="section-number">2.1.1.5. </span>Mass and Forces<a class="headerlink" href="#mass-and-forces" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>ib_mass</strong> : mass of iceberg (kg)</p></li>
+<li><p><strong>ib_FU</strong> : total drag force (U direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FV</strong> : total drag force (V direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FwU</strong> : water drag force (U direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FwV</strong> : water drag force (V direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FwU_z</strong> : water drag force (U direction) at each vertical level (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FwV_z</strong> : water drag force (V direction) at each vertical level (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FaU</strong> : atmospheric drag force (U direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FaV</strong> : atmospheric drag force (V direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FiU</strong> : sea ice drag force (U direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FiV</strong> : sea ice drag force (V direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FrU</strong> : wave radiation drag force (U direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FrV</strong> : wave radiation drag force (V direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FcU</strong> : Coriolis force (U direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FcV</strong> : Coriolis force (V direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FpU</strong> : pressure gradient force (U direction) (kg m s<sup>-2</sup>)</p></li>
+<li><p><strong>ib_FpV</strong> : pressure gradient force (V direction) (kg m s<sup>-2</sup>)</p></li>
+</ul>
+</section>
+<section id="wave-parameters">
+<h3><span class="section-number">2.1.1.6. </span>Wave Parameters<a class="headerlink" href="#wave-parameters" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Lw</strong> : empirical wavelength</p></li>
+<li><p><strong>Cr</strong> : variable wavelength coefficient</p></li>
+<li><p><strong>Wamp</strong> : wave amplitude (m), half of wave height</p></li>
+<li><p><strong>Wh</strong> : wave height (m)</p></li>
+</ul>
+</section>
+<section id="sea-surface-slope">
+<h3><span class="section-number">2.1.1.7. </span>Sea Surface Slope<a class="headerlink" href="#sea-surface-slope" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>grad_u</strong> : sea surface slope in x-direction at iceberg (m/m)</p></li>
+<li><p><strong>grad_v</strong> : sea surface slope in y-direction at iceberg (m/m)</p></li>
+</ul>
+</section>
+<section id="geometry-and-drag-areas">
+<h3><span class="section-number">2.1.1.8. </span>Geometry and Drag Areas<a class="headerlink" href="#geometry-and-drag-areas" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>ib_perpL_x</strong> : length of iceberg perpendicular to x-axis</p></li>
+<li><p><strong>ib_perpL_y</strong> : length of iceberg perpendicular to y-axis</p></li>
+<li><p><strong>angle</strong> : inverse tangent (atan2) of vvel_w and uvel_w for drag calculation</p></li>
+<li><p><strong>sail_area_x</strong> : area of iceberg above water in x-direction</p></li>
+<li><p><strong>sail_area_y</strong> : area of iceberg above water in y-direction</p></li>
+</ul>
+</section>
+<section id="i-o-variables">
+<h3><span class="section-number">2.1.1.9. </span>I/O Variables<a class="headerlink" href="#i-o-variables" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>varOUT</strong> : temporary variable passed from interpolation scheme</p></li>
+<li><p><strong>varOUTu</strong> : temporary variable passed back from collision scheme (U direction)</p></li>
+<li><p><strong>varOUTv</strong> : temporary variable passed back from collision scheme (V direction)</p></li>
+<li><p><strong>collide</strong> : flag passed from collision scheme (set to 1 if collision detected)</p></li>
+</ul>
+</section>
+<section id="grid-and-keel-parameters">
+<h3><span class="section-number">2.1.1.10. </span>Grid and Keel Parameters<a class="headerlink" href="#grid-and-keel-parameters" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>ib_R_low</strong> : interpolatedcal levels penetrated by iceberg</p></li>
+<li><p><strong>ib_nlvl_rl</strong> : real*4 repres water depth at iceberg location (m)</p></li>
+<li><p><strong>ib_dxC</strong> : interpolated grid spacing in x-direction at iceberg</p></li>
+<li><p><strong>ib_dyC</strong> : interpolated grid spacing in y-direction at iceberg</p></li>
+<li><p><strong>thkR</strong> : vertical thickness of each water layer the iceberg penetrates</p></li>
+<li><p><strong>ib_nlvl</strong> : number of vertientation of ib_nlvl</p></li>
+<li><p><strong>ib_RL</strong> : ratio of number of levels iceberg penetrates to the 8-level keel model of Barker et al. (2004)</p></li>
+<li><p><strong>ib_keel</strong> : keel depth calculated using second-order polynomial fit from Barker et al. (2004)</p></li>
+<li><p><strong>SAIL_LEVEL</strong> : integer number of levels above water (typically assumed as 2)</p></li>
+</ul>
+</section>
+</section>
 <section id="dynamical-framework">
-<h2><span class="section-number">2.1.1. </span>Dynamical Framework<a class="headerlink" href="#dynamical-framework" title="Link to this heading"></a></h2>
+<span id="advection-framework"></span><h2><span class="section-number">2.1.2. </span>Dynamical Framework<a class="headerlink" href="#dynamical-framework" title="Link to this heading"></a></h2>
 <img alt="Iceberg's equation of motion" src="../_images/IceBergAdvection.jpg" />
 <div class="line-block">
 <div class="line">The motion of the iceberg (dragging force) is modeled using Newton’s second law, with forces including water drag, air drag, Coriolis, and pressure gradients as in Figure 1. The motion is calculated in both horizontal (ib_FU) and vertical (ib_FV) directions.</div>
@@ -116,20 +265,9 @@ the ocean.</p>
 \[\text{ib_uVel}(n) = \text{ib_uVel}(n) + \text{ib_FU} \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)\]</div>
 <div class="math notranslate nohighlight">
 \[\text{ib_vVel}(n) = \text{ib_vVel}(n) + \text{ib_FV} \cdot \left( \frac{\Delta t}{\Delta t_{\text{ice}}} \right)\]</div>
-<div class="line-block">
-<div class="line">Notations:</div>
-</div>
-<ul class="simple">
-<li><p>Δt: Model tracer timesteps (as set in the <code class="docutils literal notranslate"><span class="pre">namelist/data</span></code> file).</p></li>
-<li><p>Δt<sub>ice</sub>: The number of iceberg timesteps to every one model tracer timestep (as set in <code class="docutils literal notranslate"><span class="pre">namelist/data.iceberg</span></code> file). The default is 10 timesteps.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ib_FU</span></code>: The horizontal dragging force.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ib_FV</span></code>: The vertical dragging force.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ib_dxC</span></code>: interpolated spacing of dx at iceberg.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ib_dyC</span></code>: interpolated spacing of dy at iceberg.</p></li>
-</ul>
 </section>
 <section id="drag-forces">
-<h2><span class="section-number">2.1.2. </span>Drag Forces<a class="headerlink" href="#drag-forces" title="Link to this heading"></a></h2>
+<h2><span class="section-number">2.1.3. </span>Drag Forces<a class="headerlink" href="#drag-forces" title="Link to this heading"></a></h2>
 <p>The drag forces are a sum of the forces acting on vertical walls (form drag) and horizontal surfaces (skin drag), determined by the general relationship:</p>
 <div class="math notranslate nohighlight">
 \[F_x = 0.5 \cdot \rho_x \cdot \left[ C_{xv} \cdot A_v + C_{xh} \cdot A_h \right] \cdot |V_x - V_i| \cdot (V_x - V_i)\]</div>
@@ -154,9 +292,8 @@ the ocean.</p>
 </ul>
 </div></blockquote>
 <p>Note: There is no horizontal drag (<span class="math notranslate nohighlight">\(C_{ih}\)</span> term) applied for sea ice.</p>
-</section>
 <section id="water-drag-force">
-<h2><span class="section-number">2.1.3. </span>Water Drag Force<a class="headerlink" href="#water-drag-force" title="Link to this heading"></a></h2>
+<h3><span class="section-number">2.1.3.1. </span>Water Drag Force<a class="headerlink" href="#water-drag-force" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>The thickness of sea ice is considered in the iceberg’s draught at the surface, so that there is <strong>no water drag force</strong> applied where sea ice exists in the model (Martin and Adcroft, 2010).</p></li>
 <li><p>For the <strong>bottom of the iceberg</strong>, horizontal drag is included to represent skin drag effects (Martin and Adcroft, 2010).</p></li>
@@ -164,7 +301,7 @@ the ocean.</p>
 </ul>
 </section>
 <section id="iceberg-keel-model">
-<span id="id1"></span><h2><span class="section-number">2.1.4. </span>Iceberg Keel Model<a class="headerlink" href="#iceberg-keel-model" title="Link to this heading"></a></h2>
+<span id="id1"></span><h3><span class="section-number">2.1.3.2. </span>Iceberg Keel Model<a class="headerlink" href="#iceberg-keel-model" title="Link to this heading"></a></h3>
 <p>Calculate shape of iceberg keel (<code class="docutils literal notranslate"><span class="pre">ib_keel</span></code>) based on second order polynomial fit to the top 8 levels of the keel model of
 Barker et al. 2004) <code class="docutils literal notranslate"><span class="pre">ib_keel</span></code> is a fractional value of the absolute length at each depth. Multiply <code class="docutils literal notranslate"><span class="pre">ib_keel</span></code> by <code class="docutils literal notranslate"><span class="pre">ib_perpL</span></code> to
 get an actual size (meters) at each level in the model. The keel above and below water has the general shape:</p>
@@ -194,7 +331,7 @@ change the shape of the iceberg above the waterline to a two-layer sail that dec
 </ul>
 </section>
 <section id="multi-level-ocean-drag">
-<h2><span class="section-number">2.1.5. </span>Multi Level Ocean Drag<a class="headerlink" href="#multi-level-ocean-drag" title="Link to this heading"></a></h2>
+<h3><span class="section-number">2.1.3.3. </span>Multi Level Ocean Drag<a class="headerlink" href="#multi-level-ocean-drag" title="Link to this heading"></a></h3>
 <div class="line-block">
 <div class="line">Consider ocean drag force at EVERY LEVEL in the ocean model that an iceberg penetrates. This is designed to give a more realistic advection pattern, compared to the purely surface ocean advection that is typically used in models.</div>
 </div>
@@ -242,6 +379,212 @@ change the shape of the iceberg above the waterline to a two-layer sail that dec
 <li><p><span class="math notranslate nohighlight">\(u_r\)</span> and <span class="math notranslate nohighlight">\(v_r\)</span> are the relative velocity components in x and y</p></li>
 <li><p><span class="math notranslate nohighlight">\(\text{ib_perpL}\)</span>, <span class="math notranslate nohighlight">\(\text{ib_wth}\)</span>, and <span class="math notranslate nohighlight">\(\text{ib_lth}\)</span> are iceberg geometry terms</p></li>
 </ul>
+</section>
+</section>
+<section id="air-drag-force">
+<h2><span class="section-number">2.1.4. </span>Air Drag Force<a class="headerlink" href="#air-drag-force" title="Link to this heading"></a></h2>
+<p>To calculate Air Drag force, there are 3 options:</p>
+<ul class="simple">
+<li><p>Use keel model (<a class="reference internal" href="#iceberg-keel-model"><span class="std std-ref">Iceberg Keel Model</span></a>)</p></li>
+<li><p>Use sail model (<a class="reference internal" href="#sail-model"><span class="std std-ref">Using Sail Model</span></a>)</p></li>
+<li><p>Use tabular model (<code class="docutils literal notranslate"><span class="pre">ib_keel=1</span></code>)</p></li>
+</ul>
+<p><strong>Note:</strong> In the first run, iceberg mass is updated using</p>
+<div class="math notranslate nohighlight">
+\[ib\_mass = ib\_mass
++ \left(
+    ib\_wth(ib_n)
+    \cdot ib\_keel
+    \cdot ib\_lth(ib_n)
+    \cdot ib\_keel
+    \cdot ib\_fbd(ib_n)
+    \cdot 0.5
+    \cdot ib\_rho
+  \right)\]</div>
+<section id="using-keel-model">
+<h3><span class="section-number">2.1.4.1. </span>Using Keel Model<a class="headerlink" href="#using-keel-model" title="Link to this heading"></a></h3>
+<p>Reduce length of ib_perpL to be consistent with keel model
+and icebergs having their maximum length below the waterline.
+We use the polynomial fit to the Barker et al (2004) keel data
+and assume a two layer model for the portion of the
+iceberg ABOVE water. The top (bottom) layers have lengths
+61% (78%) of the maximum length below the water line.</p>
+<div class="math notranslate nohighlight">
+\[ib\_Fa = ib\_Fa
++ \left(
+    0.5 \cdot \rho_a
+    \cdot C_{av}
+    \cdot ib\_perpL
+    \cdot ib\_keel
+    \cdot ib\_fbd(ib_n)
+    \cdot 0.5
+    \cdot Vel_{a_r}
+    \cdot uvel_{a_r}
+  \right)\]</div>
+<p><strong>Note:</strong> Only applied to icebergs with length &gt; 50m, based on CIS model (Kubat et al., 2005)</p>
+</section>
+<section id="using-sail-model">
+<span id="sail-model"></span><h3><span class="section-number">2.1.4.2. </span>Using Sail Model<a class="headerlink" href="#using-sail-model" title="Link to this heading"></a></h3>
+<p>Option to estimate air drag using empirical Sail Area model
+based on Canadian Hydraulics Centre (CHC) iceberg model (Barker et al 2004)
+Icebergs have a pinnacle shape typical of those observed at the Grand Banks.
+Using this scheme reduces wind drag on an iceberg.</p>
+<div class="math notranslate nohighlight">
+\[Sail area = A_o * L + B_o\]</div>
+<p>where Ao = 28.194 m and Bo = -1420.2 m2 based on constants from
+Barker et al. 2004).</p>
+<div class="math notranslate nohighlight">
+\[ib\_Fa = 0.5 \cdot \rho_a \cdot Cav \cdot sail\_area\ \cdot Vel\_a\_r \cdot vel\_a\_r\]</div>
+<p>Using</p>
+<p><strong>Note:</strong> If sail area is less than Zero (at approx. lengths of 50 m) then air drag is ignored.</p>
+</section>
+<section id="using-tabular-icebergs">
+<h3><span class="section-number">2.1.4.3. </span>Using Tabular Icebergs<a class="headerlink" href="#using-tabular-icebergs" title="Link to this heading"></a></h3>
+<div class="math notranslate nohighlight">
+\[ib\_Fa = 0.5 \cdot \rho_a \cdot
+          \left( Cav \cdot ib\_perpL \cdot ib\_fbd(ib\_n)
+          + Cah \cdot ib\_wth(ib\_n) \cdot ib\_lth(ib\_n) \right)
+          \cdot Vel\_a\_r \cdot vel\_a\_r\]</div>
+</section>
+</section>
+<section id="wave-radiation-force">
+<h2><span class="section-number">2.1.5. </span>Wave Radiation Force<a class="headerlink" href="#wave-radiation-force" title="Link to this heading"></a></h2>
+<div class="math notranslate nohighlight">
+\[Fr = \frac{1}{2} \cdot \rho_W \cdot Cr \cdot g \cdot \min(Wamp, ib\_fbd)^2 \cdot Lw \cdot \frac{vel_a}{|vel_a|}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(Cr\)</span> is the wave coefficient</p></li>
+<li><p><span class="math notranslate nohighlight">\(g\)</span> is gravitational acceleration</p></li>
+<li><p><span class="math notranslate nohighlight">\(Wamp\)</span> is wave amplitude</p></li>
+<li><p><span class="math notranslate nohighlight">\(ib\_fbd\)</span> is iceberg freeboard height</p></li>
+<li><p><span class="math notranslate nohighlight">\(Lw\)</span> is iceberg length normal to incident wave direction</p></li>
+<li><p><span class="math notranslate nohighlight">\(vel_a\)</span> is air velocity</p></li>
+</ul>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>Equation modified from Savage et al. (2001) to include dependence of wave height on sea ice.</p></li>
+<li><p>Wave direction is assumed to be the same as air velocity.</p></li>
+<li><p>Wave height (Wh) is given by:</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[Wh = 0.02025 \cdot |vel_a - vel_w|^2\]</div>
+<p>Based on the quadratic fit of wave height to wind speed from the marine Beaufort Scale (Bigg et al. 1997).</p>
+<ul class="simple">
+<li><p>Example: a 30 ms<sup>-1</sup> wind produces ~9 m wave height and amplitude of 4.5 m.</p></li>
+<li><p>As with Martin and Adcroft (2010), only wind speed relative to ocean is considered.</p></li>
+<li><p>Increased sea ice area dampens wave drag influence, similar to wave erosion treatment in <code class="docutils literal notranslate"><span class="pre">iceberg_therm.F</span></code>.</p></li>
+<li><p>If wave height &gt; freeboard height, freeboard height is used to avoid unrealistic forces on small icebergs (Modified from Martin and Adcroft, 2010).</p></li>
+<li><p>Variable wave coefficient (<span class="math notranslate nohighlight">\(Cr\)</span>) dampens wave radiation when iceberg length to wavelength ratio is small, preventing dominance of wave radiation force (Martin and Adcroft, 2010; Carrieres et al. 2001). Typical <span class="math notranslate nohighlight">\(Cr\)</span> is ~0.06, decreasing below 0.06 for ib_lth/Lw &lt; 0.25 (Carrieres et al. Fig. 6).</p></li>
+</ul>
+<p>The value of wave radiation force is calculated using:</p>
+<div class="math notranslate nohighlight">
+\[ib\_Fr = 0.5 \cdot \rho_w \cdot Cr \cdot gravity
+          \cdot Wh^2 \cdot ib\_perpL
+          \cdot \frac{vel_a}{|vel_a|}\]</div>
+</section>
+<section id="sea-ice-drag">
+<h2><span class="section-number">2.1.6. </span>SEA ICE DRAG<a class="headerlink" href="#sea-ice-drag" title="Link to this heading"></a></h2>
+<p>N.B  <code class="docutils literal notranslate"><span class="pre">SIarea</span></code> &lt;0.15 does not exert force on the iceberg
+((Lichey and Hellmer, 2001) as it is assumed to open water. This is
+acheived by setting <code class="docutils literal notranslate"><span class="pre">SIheff</span> <span class="pre">=</span> <span class="pre">0</span></code> when <code class="docutils literal notranslate"><span class="pre">SIarea</span> <span class="pre">&lt;</span> <span class="pre">0.15</span></code>. This criteria is set i
+earlier when Sea ice fields are loaded. Also, when <code class="docutils literal notranslate"><span class="pre">SIarea</span> <span class="pre">&gt;</span> <span class="pre">0.9</span></code>
+like (Lichey and Hellmer, 2001) we assume that all other forcings
+are set to zero and that icebergs are ‘locked’ in the sea ice
+and drift with the pack ice.</p>
+<div class="math notranslate nohighlight">
+\[uvel\_si\_r = uvel\_si - ib\_uVel(ib\_n)\]</div>
+<div class="math notranslate nohighlight">
+\[vvel\_si\_r = vvel\_si - ib\_vVel(ib\_n)\]</div>
+<div class="math notranslate nohighlight">
+\[Vel\_si\_r = \left| \sqrt{ uvel\_si\_r^2 + vvel\_si\_r^2 } \right|\]</div>
+<p>If <span class="math notranslate nohighlight">\(ib\_SIheff &gt; ib\_fbd(ib\_n)\)</span> then <span class="math notranslate nohighlight">\(ib\_SIheff = ib\_fbd(ib\_n)\)</span></p>
+<div class="math notranslate nohighlight">
+\[ib\_Fi = 0.5 \cdot \rho\_si \cdot Civ
+         \cdot ( ib\_perpL \cdot ib\_SIheff )
+         \cdot Vel\_si\_r^2\]</div>
+<p>Consider mass added to the iceberg due to the water that the iceberg
+drags along with it, as used in the Canadian Hydraulics Center iceberg model
+(Kubat et al. 2005).</p>
+<div class="math notranslate nohighlight">
+\[ib_\text{mass} = ib_\text{mass} * 1.5\]</div>
+<p>Explanation:</p>
+<ul class="simple">
+<li><p>On the first timestep (<span class="math notranslate nohighlight">\(ib\_tstep = 1\)</span>), the iceberg mass is increased by a factor of 1.5 to account for the added mass effect from the surrounding water that is dragged along as the iceberg accelerates.</p></li>
+</ul>
+</section>
+<section id="coriolis-force">
+<h2><span class="section-number">2.1.7. </span>Coriolis Force<a class="headerlink" href="#coriolis-force" title="Link to this heading"></a></h2>
+<p>The Coriolis force is calculated based on the hemisphere in which the iceberg is located:</p>
+<ul class="simple">
+<li><p>If the latitude (<span class="math notranslate nohighlight">\(ib\_lat\)</span>) is greater than or equal to zero (Northern Hemisphere), set <cite>hemis = -1.0</cite>, resulting in deflection to the right.</p></li>
+<li><p>Otherwise (Southern Hemisphere), set <cite>hemis = 1.0</cite>, resulting in deflection to the left.</p></li>
+</ul>
+<p>The Coriolis force components are then calculated as:</p>
+<div class="math notranslate nohighlight">
+\[ib\_FcU = ib\_mass \cdot ib\_cori \cdot ib\_vVel(ib\_n)\]</div>
+<div class="math notranslate nohighlight">
+\[ib\_FcV = ib\_mass \cdot ib\_cori \cdot ib\_uVel(ib\_n) \cdot hemis\]</div>
+</section>
+<section id="pressure-gradient-force">
+<h2><span class="section-number">2.1.8. </span>Pressure Gradient Force<a class="headerlink" href="#pressure-gradient-force" title="Link to this heading"></a></h2>
+<div class="math notranslate nohighlight">
+\[F_p = -M \cdot g \cdot grad\]</div>
+<p>where <span class="math notranslate nohighlight">\(grad\)</span> is the sea surface sloop from the free surface model</p>
+<div class="math notranslate nohighlight">
+\[grad_u = (etaN(i1,j1,bi,bj) - etaN(i1+1,j1,bi,bj)) / dxg(i1,j1,bi,bj)\]</div>
+<div class="math notranslate nohighlight">
+\[grad_v = (etaN(i1,j1,bi,bj) - etaN(i1,j1+1,bi,bj)) / dyg(i1,j1,bi,bj)\]</div>
+<p><strong>Note:</strong> The PGF causes icebergs to move down slope.
+The minus sign is excluded in the equation below because
+gravity has a positive sign in the model.</p>
+</section>
+<section id="sum-forces-acting-on-iceberg">
+<h2><span class="section-number">2.1.9. </span>Sum Forces Acting On Iceberg<a class="headerlink" href="#sum-forces-acting-on-iceberg" title="Link to this heading"></a></h2>
+<p>The total force acting on the iceberg is calculated:</p>
+<div class="math notranslate nohighlight">
+\[ib_F =   ib_Fw + ib_Fa + ib_Fr + ib_Fi + ib_Fp + ib_Fc\]</div>
+<p><strong>Note:</strong> if <code class="docutils literal notranslate"><span class="pre">USE_LAGRANGIAN_FLOAT</span></code> is <strong>ENABLED</strong> in <code class="docutils literal notranslate"><span class="pre">data.iceberg</span></code>, <span class="math notranslate nohighlight">\(ib_F = ib_Fw\)</span> only.</p>
+</section>
+<section id="convert-force-to-acceleration">
+<h2><span class="section-number">2.1.10. </span>Convert Force To Acceleration<a class="headerlink" href="#convert-force-to-acceleration" title="Link to this heading"></a></h2>
+<p>The total force calculated above is measured by <span class="math notranslate nohighlight">\(kg \cdot m \cdot s-2\)</span>. Hence we need to convert it to acceleration
+for calculating advection by <span class="math notranslate nohighlight">\(ib_F = ib_F/ib_mass\)</span></p>
+</section>
+<section id="iceberg-advection">
+<h2><span class="section-number">2.1.11. </span>Iceberg Advection<a class="headerlink" href="#iceberg-advection" title="Link to this heading"></a></h2>
+<p>Once obtained all the forces, the advection is calculated as proposed in <a class="reference internal" href="#advection-framework"><span class="std std-ref">Dynamical Framework</span></a></p>
+<p>However, the distance traveled may be different in some scenarios:</p>
+<ul class="simple">
+<li><p>If the iceberg is small (<code class="docutils literal notranslate"><span class="pre">thickness</span> <span class="pre">&lt;</span> <span class="pre">3</span></code> OR <code class="docutils literal notranslate"><span class="pre">width</span> <span class="pre">&lt;</span> <span class="pre">3</span></code>), then it will drift with the ocean:</p></li>
+</ul>
+<p>If <code class="docutils literal notranslate"><span class="pre">ALLOW_ICEBERG_MULTILEVEL</span></code> is <strong>ENABLED</strong> in <code class="docutils literal notranslate"><span class="pre">data.iceberg</span></code></p>
+<div class="math notranslate nohighlight">
+\[ib_\text{uVel}(ib_n) =  uvel_w(1)\]</div>
+<div class="math notranslate nohighlight">
+\[ib_\text{vVel}(ib_n) =  vvel_w(1)\]</div>
+<p>else</p>
+<div class="math notranslate nohighlight">
+\[ib_\text{uVel}(ib_n) =  uvel_w\]</div>
+<div class="math notranslate nohighlight">
+\[ib_\text{vVel}(ib_n) =  vvel_w\]</div>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">ALLOW_SEAICE</span></code> and <code class="docutils literal notranslate"><span class="pre">ICEBERGS_DRIFT_WITH_SEAICE</span></code> are <strong>BOTH ENABLED</strong> in <code class="docutils literal notranslate"><span class="pre">data.iceberg</span></code>, then if iceberg in thick sea ice (<code class="docutils literal notranslate"><span class="pre">SIarea</span> <span class="pre">&gt;=</span> <span class="pre">0.9</span></code>):</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[ib_\text{uVel}(ib_n) = uvel_si\]</div>
+<div class="math notranslate nohighlight">
+\[ib_\text{vVel}(ib_n) = vvel_si\]</div>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">CAP_ICEBERG_VELOCITY</span></code> is <strong>ENABLED</strong> in <code class="docutils literal notranslate"><span class="pre">data.iceberg</span></code>, then the iceberg velocity set to ocean velocity</p></li>
+</ul>
+</section>
+<section id="move-iceberg-on-model-grid">
+<h2><span class="section-number">2.1.12. </span>Move Iceberg On Model Grid<a class="headerlink" href="#move-iceberg-on-model-grid" title="Link to this heading"></a></h2>
+<div class="math notranslate nohighlight">
+\[ib_\text{i}(ib_n) = ib_\text{i}(ib_n)  + dist_i\]</div>
+<div class="math notranslate nohighlight">
+\[ib_\text{j}(ib_n) = ib_\text{j}(ib_n)  + dist_j\]</div>
+<p><strong>Note:</strong> The icebergs at the edge of model grid are flagged as melted</p>
 </section>
 </section>
 
