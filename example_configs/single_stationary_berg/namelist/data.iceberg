@@ -13,12 +13,13 @@
  /
 
  &ICEBERG_DIAGS
+ ib_iceberg_filename = 'diags/iceberg/iceberg_hehe',
  ib_melt_profile_filename = 'diags/IBMSUBPF/IBMSUBPF',
  ib_melt_profile_period = 86400.,
  ib_solar_melt_filename = 'diags/IBMSOLAR/IBMSOLAR',
  ib_solar_melt_period = 86400.,
  ib_atm_melt_filename = 'diags/IBMATMCV/IBMATMCV',
  ib_atm_melt_period = 86400.,
- ib_wave_melt_filename = 'diags/IBMWVESN/IBMWVESN',
+ ib_wave_melt_filename = 'diags/IBMWVESN/IBMWV',
  ib_wave_melt_period = 86400.,
  /

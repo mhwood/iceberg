@@ -35,12 +35,13 @@ C     myThid :: my Thread Id number
 
 C     == Local variables ==
 C     IcebergOutput :: store all iceberg data for writing out
-      CHARACTER(10) mystring
-      CHARACTER(36) ib_name
+      CHARACTER(10) iterStr
+      CHARACTER*(MAX_LEN_MBUF) mystring
+      CHARACTER(:), allocatable :: ib_name
       CHARACTER*(MAX_LEN_MBUF) suff
       LOGICAL  DIFFERENT_MULTIPLE
       EXTERNAL DIFFERENT_MULTIPLE
-      CHARACTER*(MAX_LEN_MBUF) msgBuf
+      CHARACTER*(MAX_LEN_MBUF * 2) msgBuf
       INTEGER i, j, k, bi, bj
       LOGICAL dumpFiles
       INTEGER mUnit
@@ -49,8 +50,7 @@ C     IcebergOutput :: store all iceberg data for writing out
 
 #ifdef ALLOW_PROFILE_OUTPUT
       _RL profileOutput(NUMBER_OF_BERGS,2)
-      CHARACTER(10) mystring3
-      CHARACTER(38) pf_name
+      character(:), allocatable :: pf_name
       INTEGER PfOutSize
       INTEGER ib_n
 #endif
@@ -87,7 +87,8 @@ C     If its time to write out then:
        IF (dumpFiles) THEN
         IF (ib_Tot.GT.0) THEN
          WRITE (mystring,'(I10.10)') myIter
-         ib_name = 'diags/iceberg/iceberg.' // mystring // '.bin'
+         ib_name = trim(ib_iceberg_filename) // '.' // 
+     &     trim(mystring) // '.bin'
          _BARRIER
          WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', ib_name
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -180,7 +181,7 @@ C       Dump files and restart average computation if needed
 #endif
         ENDIF
 
-        IF (dumpFiles) THEN  ! If time to dump files:
+        IF (dumpFiles) THEN  ! If time to dump files: 
 C        Normalize by integrated time
 !          DO bj = myByLo(myThid), myByHi(myThid)
 !           DO bi = myBxLo(myThid), myBxHi(myThid)
@@ -264,9 +265,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE (pf_name,'(A,A,I10.10,A)') 
-     &            ib_melt_profile_filename(1:23),'.',
-     &            myIter, '.bin'
+            WRITE(iterStr, '(I10.10)') myIter
+            pf_name = trim(ib_melt_profile_filename) // '.' // 
+     &       iterStr // '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -331,9 +332,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE (pf_name,'(A,A,I10.10,A)') 
-     &            ib_solar_melt_filename(1:23),'.',
-     &            myIter, '.bin'
+            WRITE(iterStr, '(I10.10)') myIter
+            pf_name = trim(ib_solar_melt_filename) // '.' // 
+     &       iterStr // '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -393,9 +394,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE (pf_name,'(A,A,I10.10,A)') 
-     &            ib_atm_melt_filename(1:23),'.',
-     &            myIter, '.bin'
+            WRITE(iterStr, '(I10.10)') myIter
+            pf_name =  trim(ib_atm_melt_filename) // '.' // 
+     &       iterStr // '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -455,9 +456,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE (pf_name,'(A,A,I10.10,A)') 
-     &            ib_wave_melt_filename(1:23),'.',
-     &            myIter, '.bin'
+            WRITE(iterStr, '(I10.10)') myIter
+            pf_name = trim(ib_wave_melt_filename) // '.' // 
+     &       iterStr // '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,

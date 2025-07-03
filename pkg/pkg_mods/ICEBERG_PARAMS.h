@@ -66,10 +66,12 @@ c Alan Condron, UMass Amherst, 2015
 
 
       COMMON /ICEBERG_DIAGS_CHAR/
+     & ib_iceberg_filename,
      & ib_melt_profile_filename,
      & ib_solar_melt_filename,
      & ib_atm_melt_filename,
      & ib_wave_melt_filename
+      CHARACTER*128 ib_iceberg_filename
       CHARACTER*128 ib_melt_profile_filename
       CHARACTER*128 ib_solar_melt_filename
       CHARACTER*128 ib_atm_melt_filename

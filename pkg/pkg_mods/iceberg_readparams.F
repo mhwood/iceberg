@@ -29,9 +29,6 @@ c     routine arguements
       INTEGER i, j, k, bi, bj
 
 C     Local arguements
-      CHARACTER mystring*10
-      CHARACTER ib_name*25
-      CHARACTER ib_name2*30
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER iUnit, aop, reason
       INTEGER ioUnit
@@ -87,6 +84,7 @@ C     Local arguements
      &   ibFreshwaterScale
 
       NAMELIST /ICEBERG_DIAGS/
+     &   ib_iceberg_filename,
      &   ib_melt_profile_filename,
      &   ib_solar_melt_filename,
      &   ib_atm_melt_filename,
@@ -147,6 +145,7 @@ C     Defaults for namelist ICEBERG_PARM02
       ibFreshwaterScale = 1.
 
 C     Defaults for namelist ICEBERG_DIAGS
+      ib_iceberg_filename = ' '
       ib_melt_profile_filename = ' '
       ib_solar_melt_filename = ' '
       ib_atm_melt_filename = ' '
@@ -262,8 +261,13 @@ C----
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
 
+      WRITE(msgBuf,'(A, A)'), 'ib_iceberg_filename ', 
+     &  trim(ib_iceberg_filename) 
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+
       WRITE(msgBuf,'(A, A)'), 'ib_melt_profile_filename ', 
-     &  ib_melt_profile_filename 
+     &  trim(ib_melt_profile_filename) 
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
 
@@ -273,7 +277,7 @@ C----
      &                    SQUEEZE_RIGHT , myThid)
 
       WRITE(msgBuf,'(A, A)'), 'ib_solar_melt_filename ', 
-     &  ib_solar_melt_filename 
+     &  trim(ib_solar_melt_filename) 
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
 
@@ -283,7 +287,7 @@ C----
      &                    SQUEEZE_RIGHT , myThid)
 
       WRITE(msgBuf,'(A, A)'), 'ib_atm_melt_filename ', 
-     &  ib_atm_melt_filename 
+     &  trim(ib_atm_melt_filename) 
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
 
@@ -292,6 +296,15 @@ C----
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
 
+      WRITE(msgBuf,'(A, A)'), 'ib_wave_melt_filename ', 
+     &  trim(ib_wave_melt_filename) 
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+
+      WRITE(msgBuf,'(A, F11.1)'), 'ib_wave_melt_period ', 
+     &  ib_wave_melt_period
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
 
       CLOSE(iUnit)
 
