@@ -31,7 +31,7 @@ C     myThid - thread number for this instance of the routine.
 C     == Local arguments ==
       CHARACTER*(MAX_LEN_MBUF) msgBuf
 
-#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DEBUG_ON
       WRITE(msgBuf,'(A)') 'ICEBERG: iceberg_init_varia.F'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
@@ -87,7 +87,7 @@ C
 
 #ifdef ALLOW_ICEBERG_CALVING 
 
-#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DEBUG_ON
       WRITE(msgBuf,'(A)')
      &     'ICEBERG: Calving switched ON'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -95,7 +95,7 @@ C
 #endif
 
       IF (useIcebergPickup.AND.niter0.NE.0) THEN
-#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DEBUG_ON
       WRITE(msgBuf,'(A)')
      &      'ICEBERG: Loading IcebergPickup file'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -109,7 +109,7 @@ C
 
 ! #ifndef ALLOW_ICEBERG_CALVING
 
-! #ifdef ICEBERG_DIAG_ON
+! #ifdef ICEBERG_DEBUG_ON
 !       WRITE(msgBuf,'(A)')
 !      &'ICEBERG: Calving is OFF so looking for either IcebergLocationFile
 !      & or PickupFile' 

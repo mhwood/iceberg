@@ -20,7 +20,8 @@ example_configs/*/input/*.txt
 example_configs/*/input/*/exf
 example_configs/*/input/*/obcs
 example_configs/*/input/*/calving_schedules
-example_configs/*/run
+example_configs/*/run*
+example_configs/cold_barotropic_gyre/input*/*
 
 # Distribution / packaging
 .Python

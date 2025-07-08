@@ -14,10 +14,7 @@ C     \==========================================================/
 
 
 C--   Diagnostics mode. Define to print out additional stats. from model
-#define ICEBERG_DIAG_ON
-
-C--   Diagnostics to check mpi tile exchange
-#undef ICEBERG_TILE_DIAG_ON
+#define ICEBERG_DEBUG_ON
 
 C------- THERMODYNAMIC OPTIONS -------
 

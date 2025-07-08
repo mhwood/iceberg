@@ -57,6 +57,10 @@ C--   Calving schedule params
         iceberg_MeltProfileCount(ib_n) = 0
         iceberg_SolarMeltCount(ib_n) = 0
         iceberg_AtmMeltCount(ib_n) = 0
+#ifdef ALLOW_USE_MPI
+        exchange_list(ib_n,1) = -1
+        exchange_list(ib_n,2) = -1
+#endif
       ENDDO
 
 
@@ -93,15 +97,25 @@ C     This block is moved here when we are using the calving schedule
        nn=1 ! Set counter to 1
        aop = 1
        DO WHILE (aop.EQ.1)
-        READ(223,'(F6.1, F7.1, F7.1)', IOSTAT=reason), 
+        READ(223,'(F6.1, F7.1, F7.1, F7.1)', IOSTAT=reason), 
      &  CalvingLocations (nn,1), ! tag source of iceberg
-     &  CalvingLocations (nn,2),
-     &  CalvingLocations (nn,3)
+     &  CalvingLocations (nn,2), ! tile
+     &  CalvingLocations (nn,3), ! i-position
+     &  CalvingLocations (nn,4)  ! j-position
 
-#ifdef ICEBERG_DIAG_ON
-       WRITE(msgBuf,'(A,F5.1,A,F5.1,A,F5.1)') 'ICEBERG: ID: ',
-     &  CalvingLocations (nn,1),' row: ', CalvingLocations (nn,2),
-     &    ' col: ',CalvingLocations (nn,3)
+        IF (reason .EQ. 0) THEN
+          CalvingLocations(nn,1) = FLOOR(CalvingLocations(nn,1))
+          CalvingLocations(nn,2) = FLOOR(CalvingLocations(nn,2))
+          CalvingLocations(nn,3) = FLOOR(CalvingLocations(nn,3))
+          CalvingLocations(nn,4) = FLOOR(CalvingLocations(nn,4))
+        ENDIF
+
+
+#ifdef ICEBERG_DEBUG_ON
+       WRITE(msgBuf,'(A,F5.1,A,F5.1,A,F5.1,A,F5.1)') 'ICEBERG: ID: ',
+     &  CalvingLocations (nn,1), ' tile: ',  
+     &  CalvingLocations (nn,2),' row: ', CalvingLocations (nn,3),
+     &    ' col: ',CalvingLocations (nn,4)
        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
 #endif
@@ -113,7 +127,7 @@ C     This block is moved here when we are using the calving schedule
      &                    SQUEEZE_RIGHT, myThid )
          STOP
         ELSEIF (reason < 0) THEN
-#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DEBUG_ON
          WRITE(msgBuf,'(2A)') 
      &     'ICEBERG: Finished reading: ', CalvingFile
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -129,7 +143,7 @@ C     This block is moved here when we are using the calving schedule
        ENDDO
        CLOSE (223)
 
-#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DEBUG_ON
 C     Now read in the schedules for each location
       WRITE(msgBuf,'(A)') 'ICEBERG: READING Calving Schedules'
        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -154,14 +168,14 @@ C-     Assign a free unit number as the I/O channel for this subroutine
        IcebergCalvingSchedule(:,3,i) = schedule(:,3)
        IcebergCalvingSchedule(:,4,i) = schedule(:,4)
 
-#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DEBUG_ON
          WRITE(msgBuf,'(2A)')
      &     'ICEBERG: Finished reading: ', schedule_filename
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
 #endif
 
-#ifdef ICEBERG_DIAG_ON
+#ifdef ICEBERG_DEBUG_ON
       WRITE(msgBuf,'(A,A,A)')
      &      '------ SUMMARY OF ',schedule_filename,' ------'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,

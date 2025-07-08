@@ -60,7 +60,7 @@ as follows:
      - The velocity of the iceberg in the v-direction. Note that the velocity is in reference to the local grid orientation. 
    * - 12
      - Flag
-     - A flag for the iceberg state. 0 indicates the iceberg is freely floating, 1 indicates it is drifting with sea ice, 2 indicates the iceberg is grounded on the seafloor.
+     - A flag for the iceberg state. -1 indicates the iceberg has just calved. 0 indicates the iceberg is freely floating, 1 indicates it is drifting with sea ice, 2 indicates the iceberg is grounded on the seafloor. 3 indicates the iceberg has melted and will be removed from the model in the next time step.
    * - 13
      - Source
      - The ID of the calving location (as identified in the calving_location.txt file).

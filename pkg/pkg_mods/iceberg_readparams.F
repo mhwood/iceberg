@@ -94,6 +94,15 @@ C     Local arguements
      &   ib_atm_melt_period,
      &   ib_wave_melt_period
 
+      NAMELIST /ICEBERG_DEBUG/
+     &  ib_model_debug_level,
+     &  ib_advection_debug_level,
+     &  ib_surface_melt_debug_level,
+     &  ib_submerged_melt_debug_level,
+     &  ib_calving_debug_level,
+     &  ib_exchange_info_debug_level,
+     &  ib_exchange_tile_debug_level
+
 C     == end of interface ==
 
       _BEGIN_MASTER(myThid)
@@ -145,18 +154,27 @@ C     Defaults for namelist ICEBERG_PARM02
       ibFreshwaterScale = 1.
 
 C     Defaults for namelist ICEBERG_DIAGS
-      ib_iceberg_filename = ' '
+      ib_iceberg_filename = 'iceberg'
       ib_melt_profile_filename = ' '
       ib_solar_melt_filename = ' '
       ib_atm_melt_filename = ' '
       ib_melt_profile_period = 0.0
       ib_solar_melt_period = 0.0
       ib_atm_melt_period = 0.0
-      
+
+#ifdef ICEBERG_DEBUG_ON
+C     Defaults for namelist ICEBERG_DEBUG
+      ib_model_debug_level          = 0
+      ib_advection_debug_level      = 0
+      ib_surface_melt_debug_level   = 0
+      ib_submerged_melt_debug_level = 0
+      ib_calving_debug_level        = 0
+      ib_exchange_info_debug_level  = 0
+      ib_exchange_tile_debug_level  = 0
+#endif
 
 C     Other defaults
       reason                = 0  
-
 
 C
 C--  Read data.iceberg
@@ -287,7 +305,7 @@ C----
      &                    SQUEEZE_RIGHT , myThid)
 
       WRITE(msgBuf,'(A, A)'), 'ib_atm_melt_filename ', 
-     &  trim(ib_atm_melt_filename) 
+     &  trim(ib_atm_melt_filename)
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
 
@@ -305,6 +323,42 @@ C----
      &  ib_wave_melt_period
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT , myThid)
+
+#ifdef ICEBERG_DEBUG_ON
+      READ(UNIT=iUnit,NML=ICEBERG_DEBUG)
+      WRITE(msgBuf,'(A)')
+     &     'ICEBERG:finished reading ICEBERG_DEBUG'
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+      WRITE(msgBuf,'(A, I5)'), 'ib_model_debug_level ', 
+     &  ib_model_debug_level
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+      WRITE(msgBuf,'(A, I5)'), 'ib_advection_debug_level ',
+     &  ib_advection_debug_level
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+      WRITE(msgBuf,'(A, I5)'), 'ib_surface_melt_debug_level ',
+     &  ib_surface_melt_debug_level
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+      WRITE(msgBuf,'(A, I5)'), 'ib_submerged_melt_debug_level ',
+     &  ib_submerged_melt_debug_level
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+      WRITE(msgBuf,'(A, I5)'), 'ib_calving_debug_level ',
+     &  ib_calving_debug_level
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+      WRITE(msgBuf,'(A, I5)'), 'ib_exchange_info_debug_level ',
+     &  ib_exchange_info_debug_level
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+      WRITE(msgBuf,'(A, I5)'), 'ib_exchange_tile_debug_level ',
+     &  ib_exchange_tile_debug_level
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT , myThid)
+#endif
 
       CLOSE(iUnit)
 

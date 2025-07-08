@@ -9,13 +9,14 @@ c Alan Condron, UMass Amherst, 2015
       INTEGER ibFlag(NUMBER_OF_BERGS)
       INTEGER ib_Tot
       _RL ib_i(NUMBER_OF_BERGS), ib_j(NUMBER_OF_BERGS)
+      _RL ib_x(NUMBER_OF_BERGS), ib_y(NUMBER_OF_BERGS)
       _RL ib_uVel(NUMBER_OF_BERGS), ib_vVel(NUMBER_OF_BERGS)
       _RL ib_wth(NUMBER_OF_BERGS), ib_lth(NUMBER_OF_BERGS)
       _RL ib_thk(NUMBER_OF_BERGS), ib_dft(NUMBER_OF_BERGS)
       _RL ib_fbd(NUMBER_OF_BERGS)
       _RL ib_source(NUMBER_OF_BERGS), ib_scale(NUMBER_OF_BERGS)
       _RL IcebergCalvingSchedule(SCHEDULE_LEN, 4, CALVE_LOCS)
-      _RL CalvingLocations(CALVE_LOCS,3)
+      _RL CalvingLocations(CALVE_LOCS,4)
       _RL IcebergMeltWater(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
       _RL calve_slab_counter(NUMBER_OF_BERGS)
       _RL sProf  (NUMBER_OF_BERGS,Nr)
@@ -29,11 +30,15 @@ c Alan Condron, UMass Amherst, 2015
       _RL HeatFlux(NUMBER_OF_BERGS,Nr)
       _RL FwFlux(NUMBER_OF_BERGS,Nr)
       _RL delta_z(NUMBER_OF_BERGS,Nr)
+#ifdef ALLOW_USE_MPI
+      INTEGER exchange_list(NUMBER_OF_BERGS, 2) ! source and target procs
+#endif /* ALLOW_USE_MPI */
 
       COMMON /ICEBERG_PARAM003/
      &  ib_id, ib_Tile, ibFlag, 
      &  ib_Tot, 
      &  ib_i, ib_j,
+     &  ib_x, ib_y,
      &  ib_uVel, ib_vVel,
      &  ib_wth, ib_lth, ib_thk,
      &  ib_dft, ib_fbd,
@@ -45,7 +50,11 @@ c Alan Condron, UMass Amherst, 2015
      &  uProf, vProf, wProf,
      &  mProf, 
      &  FwFlux, HeatFlux,
+#ifdef ALLOW_USE_MPI
+     &  exchange_list,
+#endif /* ALLOW_USE_MPI */
      &  delta_z
+
 
       COMMON /ICEBERG_FIELDS_RL/
      &     icebergBG_TendT,

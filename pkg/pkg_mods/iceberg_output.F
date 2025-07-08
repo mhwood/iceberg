@@ -8,7 +8,7 @@ C     MITberg V1.0 WRITE ICEBERG OUTPUT
 C     ==================================================================
 C
 C     o This routine write (1) Snapshot of iceberg data at user-defined
-C       interval. Data is binary (real8, NUMBER_OF_BERGSx15). (2) time average of
+C       interval. Data is binary (real8, NUMBER_OF_BERGSx17). (2) time average of
 C       freshwater release to ocean from icebergs (Units: kg.m^-2.s^-1)
 C
 C     ==================================================================
@@ -45,7 +45,7 @@ C     IcebergOutput :: store all iceberg data for writing out
       INTEGER i, j, k, bi, bj
       LOGICAL dumpFiles
       INTEGER mUnit
-      _RL IcebergOutput(NUMBER_OF_BERGS,15)
+      _RL IcebergOutput(NUMBER_OF_BERGS,17)
       INTEGER IBOutSize
 
 #ifdef ALLOW_PROFILE_OUTPUT
@@ -64,7 +64,7 @@ C   Find out if I'm the master thread (and mpi process 0 IF useSingleCpuIO):
        iAmDoingIO = MASTER_CPU_IO(myThid)
 
 C   Calculate size of IcebergOutput (real*8)
-       IBOutSize = 8*NUMBER_OF_BERGS*15
+       IBOutSize = 8*NUMBER_OF_BERGS*17
 
 C   Clear output array
        IcebergOutput(:,:) = 0. _d 0
@@ -102,17 +102,19 @@ C     Gather iceberg data in to one array for writing
          IcebergOutput(:,2) = ib_tile(:)    ! tile 
          IcebergOutput(:,3) = ib_i(:)       ! i-loc on global grid
          IcebergOutput(:,4) = ib_j(:)       ! j-loc on global grid
-         IcebergOutput(:,5) = ib_wth(:)     ! width (m)
-         IcebergOutput(:,6) = ib_lth(:)     ! length (m)
-         IcebergOutput(:,7) = ib_thk(:)     ! thickness (m)
-         IcebergOutput(:,8) = ib_dft(:)     ! draft (m)
-         IcebergOutput(:,9) = ib_fbd(:)     ! freeboard (m)
-         IcebergOutput(:,10) = ib_uVel(:)   ! uvel (ms-1)
-         IcebergOutput(:,11) = ib_vVel(:)   ! vvel (ms-1)
-         IcebergOutput(:,12) = ibFlag(:)    ! flag (0,1,2)
-         IcebergOutput(:,13) = ib_source(:) ! calving source ID
-         IcebergOutput(:,14) = ib_scale(:)  ! #bergs 1 iceberg equals
-         IcebergOutput(:,15) = calve_slab_counter(:) ! calve slab counter
+         IcebergOutput(:,5) = ib_x(:)       ! longitude (or x coord)
+         IcebergOutput(:,6) = ib_y(:)       ! latitude (or y coord)
+         IcebergOutput(:,7) = ib_wth(:)     ! width (m)
+         IcebergOutput(:,8) = ib_lth(:)     ! length (m)
+         IcebergOutput(:,9) = ib_thk(:)     ! thickness (m)
+         IcebergOutput(:,10) = ib_dft(:)     ! draft (m)
+         IcebergOutput(:,11) = ib_fbd(:)     ! freeboard (m)
+         IcebergOutput(:,12) = ib_uVel(:)   ! uvel (ms-1)
+         IcebergOutput(:,13) = ib_vVel(:)   ! vvel (ms-1)
+         IcebergOutput(:,14) = ibFlag(:)    ! flag (0,1,2)
+         IcebergOutput(:,15) = ib_source(:) ! calving source ID
+         IcebergOutput(:,16) = ib_scale(:)  ! #bergs 1 iceberg equals
+         IcebergOutput(:,17) = calve_slab_counter(:) ! calve slab counter
 
 C-    Assign a free unit number as the I/O channel for this subroutine
          CALL MDSFINDUNIT( mUnit, myThid )
@@ -181,7 +183,7 @@ C       Dump files and restart average computation if needed
 #endif
         ENDIF
 
-        IF (dumpFiles) THEN  ! If time to dump files: 
+        IF (dumpFiles) THEN  ! If time to dump files:
 C        Normalize by integrated time
 !          DO bj = myByLo(myThid), myByHi(myThid)
 !           DO bi = myBxLo(myThid), myBxHi(myThid)
@@ -265,7 +267,7 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE(iterStr, '(I10.10)') myIter
+             WRITE(iterStr, '(I10.10)') myIter
             pf_name = trim(ib_melt_profile_filename) // '.' // 
      &       iterStr // '.bin'
             _BARRIER

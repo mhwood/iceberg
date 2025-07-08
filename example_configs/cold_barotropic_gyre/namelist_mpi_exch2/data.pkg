@@ -1,0 +1,7 @@
+# Packages
+ &PACKAGES
+ useCal         = .TRUE.,
+ useEXF         = .TRUE.,
+# useDiagnostics = .TRUE.,
+ useICEBERG     = .TRUE.,
+ &

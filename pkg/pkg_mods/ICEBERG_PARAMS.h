@@ -75,7 +75,6 @@ c Alan Condron, UMass Amherst, 2015
       CHARACTER*128 ib_melt_profile_filename
       CHARACTER*128 ib_solar_melt_filename
       CHARACTER*128 ib_atm_melt_filename
-      CHARACTER*128 ib_wave_melt_filename
 
       COMMON /ICEBERG_DIAGS_RL/
      & ib_melt_profile_period,
@@ -86,3 +85,22 @@ c Alan Condron, UMass Amherst, 2015
       _RL ib_solar_melt_period
       _RL ib_atm_melt_period
       _RL ib_wave_melt_period
+
+#ifdef ICEBERG_DEBUG_ON
+      INTEGER ib_model_debug_level
+      INTEGER ib_advection_debug_level
+      INTEGER ib_surface_melt_debug_level
+      INTEGER ib_submerged_melt_debug_level
+      INTEGER ib_calving_debug_level
+      INTEGER ib_exchange_info_debug_level
+      INTEGER ib_exchange_tile_debug_level
+
+      COMMON /ICEBERG_DEBUG_PARAM/
+     &  ib_model_debug_level,
+     &  ib_advection_debug_level,
+     &  ib_surface_melt_debug_level,
+     &  ib_submerged_melt_debug_level,
+     &  ib_calving_debug_level,
+     &  ib_exchange_info_debug_level,
+     &  ib_exchange_tile_debug_level
+#endif 

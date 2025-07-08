@@ -4,7 +4,7 @@ C
       SUBROUTINE ICEBERG_CALVE ( myTime, myIter, myThid )
 
 C     ==================================================================
-c     MITberg V1.0 ICEBERG CALVING SCHEME 
+c     MITberg V2.0 ICEBERG CALVING SCHEME 
 c     ==================================================================
 C
 C    o Icebergs are released at predefined locations
@@ -36,12 +36,13 @@ C    ==================================================================
 C     routine arguements
       INTEGER myThid
       INTEGER myIter
+      INTEGER bi, bj
       _RL myTime
 
 C     local arguements
       INTEGER kSurface
       INTEGER ib_n
-      _RL ib_iT, ib_jT
+      _RL varOUT
       INTEGER i1, j1
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER iUnit, aop, reason
@@ -67,15 +68,19 @@ C      ib_R_low     :: water depth at calving location
        kSurface        = 1
       endif
 
+C     Hack for now - no multithreadding
+      bi = 1
+      bj = 1
+
       _BEGIN_MASTER(myThid)
 
-#ifdef ICEBERG_DIAG_ON
-      IF (ib_debug_level.ge.2) THEN
-        WRITE(msgBuf,'(A)') 'ICEBERG: CALVING CALLED'
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-      ENDIF
-#endif
+#ifdef ICEBERG_DEBUG_ON
+       IF (ib_calving_debug_level.ge.1) THEN
+       WRITE(msgBuf,'(A)') '|--- ICEBERG CALVING BEGIN DEBUG'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       ENDIF
+#endif 
 
 C     Loop through each calving location and calving list
 C     If the calving time is within deltaT of the current time
@@ -101,13 +106,13 @@ C        Check if its time to calve
      &         (ABS(calving_time-myTime)<deltaT)
      &            .and.(iceberg_width.gt.10)) THEN ! time to calve
 
-#ifdef ICEBERG_DIAG_ON
-      IF (ib_debug_level.ge.2) THEN
-        WRITE(msgBuf,'(A)') 'ICEBERG: CALVING EVENT'
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-      ENDIF
-#endif
+#ifdef ICEBERG_DEBUG_ON
+       IF (ib_calving_debug_level.ge.2) THEN
+       WRITE(msgBuf,'(A)') '  |--- CALVING EVENT OCCURRED'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       ENDIF
+#endif 
 
 C       Find maximum iceberg ID (to avoid duplicating icebergs)
         max_ib_id = 0
@@ -119,11 +124,24 @@ C       Assign information to each calved iceberg
         ib_n = ib_Tot + 1
         ib_id(ib_n) = max_ib_id + 1 !old code: ib_n + IDoffset
         ib_source (ib_n) = CalvingLocations(n,1) ! iceberg source ID
-        ib_i(ib_n) = CalvingLocations(n,2)       ! i-pos 
-        ib_j(ib_n) = CalvingLocations(n,3)       ! j-pos
+        ib_tile  (ib_n) = CalvingLocations(n,2)  ! iceberg tile ID
+        ib_i(ib_n) = CalvingLocations(n,3)       ! i-pos 
+        ib_j(ib_n) = CalvingLocations(n,4)       ! j-pos
         ib_uVel(ib_n) = 0.0                      ! Initial zonal velocity
         ib_vVel(ib_n) = 0.0                      ! Initial meridional velocity
         ibFlag(ib_n) = -1                        ! set as -1 for ice just calved
+
+C     Interpolate grid spacing to iceberg
+C      ib_iT=ib_i(ib_n) - (FLOOR((ib_i(ib_n)-1)/sNx)*sNx)
+C      ib_jT=ib_j(ib_n) - (FLOOR((ib_j(ib_n)-1)/sNy)*sNy)
+!       CALL ICEBERG_FIND_IJ (ib_n, ib_iT, ib_jT,   ! find local i,j
+!      &                                myIter, myThid)
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n),
+     &                               XC, varOUT, 0, bi, bj, myThid )
+      ib_x(ib_n) = varOUT
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), 
+     &                             YC, varOUT,  0, bi, bj, myThid )
+      ib_y(ib_n) = varOUT
 
 C--  Assign size catagory (width and thickness) to iceberg
         ib_wth (ib_n) = IcebergCalvingSchedule(i,2,n)
@@ -135,41 +153,44 @@ C-- Compute the draft and freeboard
         ib_fbd(ib_n) = ib_thk(ib_n) - ib_dft(ib_n)
 
 C-- Find the tile
-        CALL ICEBERG_FIND_TILE (ib_n,myIter, myThid )
+C        CALL ICEBERG_FIND_TILE (ib_n, myIter, myThid )
+C   This should really be done with an input mask like other field.
+C   For now, will just implement with the locations file
 
-#ifdef ICEBERG_DIAG_ON
-      IF (ib_debug_level.ge.3) THEN
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_calving_debug_level.ge.3) THEN
 C      Summary of new iceberg added
         WRITE(msgBuf,'(A)')
-     &    'ICEBERG: Summary of new iceberg calved into ocean: '
+     &    '   |- Summary of new iceberg calved into ocean: '
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
-        WRITE(msgBuf,'(A, I6, A, I6)')
-     &   '       ID: ',ib_id(ib_n), ', Tile: ',ib_tile(ib_n)
+        WRITE(msgBuf,'(A, I6, A, I6, A, F9.2)')
+     &   '     |- ID: ',ib_id(ib_n), ', Tile: ',ib_tile(ib_n),
+     &   ', Source: ',ib_source(ib_n)
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                           SQUEEZE_RIGHT, myThid )
-       WRITE(msgBuf,'(A,F9.2,A,F9.2,A,F9.2)')
-     &   '       i: ',ib_i(ib_n), ', j: ', ib_j(ib_n),
-     &   ', width: ',ib_wth(ib_n)
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                           SQUEEZE_RIGHT, myThid )
-      WRITE(msgBuf,'(A,F9.2,A,F9.2)')
-     &   '       length: ',ib_lth(ib_n),', thickness: ',ib_thk(ib_n)
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                           SQUEEZE_RIGHT, myThid )
-       WRITE(msgBuf,'(A,F9.2,A,F9.2,A,F9.2)')
-     &   '       feeboard: ',ib_fbd(ib_n), 
-     &   ', draft: ',ib_dft(ib_n),', Source: ',ib_source(ib_n)
+        WRITE(msgBuf,'(A,F9.2,A,F9.2)')
+     &   '     |- x: ',ib_x(ib_n), ', y: ', ib_y(ib_n)
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                           SQUEEZE_RIGHT, myThid )
        WRITE(msgBuf,'(A,F9.2,A,F9.2)')
-     &   '       uVel:',ib_uVel(ib_n), ', vVel:',ib_vVel(ib_n)
+     &   '     |- i: ',ib_i(ib_n), ', j: ', ib_j(ib_n)
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                           SQUEEZE_RIGHT, myThid )
-        WRITE(msgBuf,'(A)')
-     &    '---End of summary---'
+       WRITE(msgBuf,'(A,F9.2,A,F9.2,A,F9.2)')
+     &   '     |- width: ',ib_wth(ib_n),
+     &   ', length: ',ib_lth(ib_n),', thickness: ',ib_thk(ib_n)
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
+     &                           SQUEEZE_RIGHT, myThid )
+       WRITE(msgBuf,'(A,F9.2,A,F9.2)')
+     &   '     |- freeboard: ',ib_fbd(ib_n), 
+     &   ', draft: ',ib_dft(ib_n)
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       WRITE(msgBuf,'(A,F9.2,A,F9.2)')
+     &   '     |- uVel:',ib_uVel(ib_n), ', vVel:',ib_vVel(ib_n)
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
       ENDIF
 #endif 
 
@@ -183,10 +204,11 @@ C   Now increment Total Number of icebergs
        STOP 'ABNORMAL END: S/R ICEBERG'
         ENDIF
 
-#ifdef ICEBERG_DIAG_ON
-      IF (ib_debug_level.ge.2) THEN
-        WRITE(msgBuf,'(A, I10)')
-     &  'Number of icebergs in system, after calving: ', ib_Tot
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_calving_debug_level.ge.4) THEN
+        WRITE(msgBuf,'(A, A, I10)')
+     &  '   |- Check number of icebergs in system,',
+     &  ' after calving event: ', ib_Tot
         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
       ENDIF
@@ -196,14 +218,23 @@ C   Now increment Total Number of icebergs
       ENDDO ! Max number of bergs in schedule
       ENDDO ! NumCalvingLoc
 
-#ifdef ICEBERG_DIAG_ON
-      IF (ib_debug_level.ge.1) THEN
-        WRITE(msgBuf,'(A, I10)')
-     &  'ICEBERG: Number of icebergs in system: ', ib_Tot
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_calving_debug_level.ge.4) THEN
+        WRITE(msgBuf,'(A, A, I10)')
+     &  '   |- Check number of icebergs in system',
+     &  'after all calving: ', ib_Tot
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
       ENDIF
 #endif
+
+#ifdef ICEBERG_DEBUG_ON
+       IF (ib_calving_debug_level.ge.1) THEN
+       WRITE(msgBuf,'(A)') '|--- ICEBERG CALVING END DEBUG'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       ENDIF
+#endif 
 
       _END_MASTER(myThid)
       _BARRIER

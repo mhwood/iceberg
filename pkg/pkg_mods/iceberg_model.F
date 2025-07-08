@@ -43,30 +43,39 @@ C     myThid    :: Thread number for this instance of the routine.
 
 c     == Local arguements ==
       INTEGER ib_n
-      _RL ib_iT, ib_jT
       CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER proc_id, num_procs
 #ifdef ALLOW_USE_MPI
       INTEGER ierr, status(MPI_STATUS_SIZE)
 #endif
 
-
-#ifdef ICEBERG_DIAG_ON
-      IF (ib_debug_level.ge.3) THEN
-      WRITE(msgBuf,'(A)') 'ICEBERG MODEL CALLED'
-      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-      ENDIF
-#endif
-
 #ifdef ALLOW_USE_MPI
-C     MPI: FIND PROCESS ID and HOW MANY PROCESSES STARTED
-      call MPI_COMM_RANK (MPI_COMM_WORLD, proc_id, ierr)
-      call MPI_COMM_SIZE (MPI_COMM_WORLD, num_procs, ierr)
+      num_procs=nPy*nPx
+      proc_id=mpiMyId
 #else
       num_procs=1
       proc_id=0
 #endif
+
+
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_model_debug_level.ge.1) THEN
+      WRITE(msgBuf,'(A,A)') '|------------------------------',
+     &  '--------------------------------------------------|'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A,I5,A,I5)')
+     & '|- ICEBERG MODEL CALLED ON PROC = ',
+     &  proc_id, ' at ITERATION = ', myIter
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A,A)') '|------------------------------',
+     &  '--------------------------------------------------|'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif
+
 
 
 #ifdef ALLOW_ICEBERG_SUBMERGED_MELT
@@ -82,52 +91,122 @@ C-- contributes to FW and Heat flux inside ICEBERG_SUBMERGED_MELT
 
         IF (ib_Tot.GT.0) THEN                          ! if icebergs in system
          DO ib_n=1,ib_Tot
-          CALL ICEBERG_FIND_TILE (ib_n, myIter, myThid)! Find iceberg tile ID
+
+C          Dpm't do this here every time because icebergs can be double counted            
+C          CALL ICEBERG_FIND_TILE (ib_n, myIter, myThid)! Find iceberg tile ID
 
           IF (proc_id.EQ.ib_Tile(ib_n)) THEN           ! Execute specific tiles
-           CALL ICEBERG_FIND_IJ (ib_n, ib_iT, ib_jT,   ! find local i,j
-     &                                myIter, myThid)
+C           CALL ICEBERG_FIND_IJ (ib_n, ib_iT, ib_jT,   ! find local i,j
+C     &                                myIter, myThid)
 
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_model_debug_level.gt.2) THEN
+       WRITE(msgBuf,'(A,I5)')
+     &  '|- Running ICEBERG_MODEL for ib_n=', ib_n
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+
+      WRITE(msgBuf,'(A,F10.5,A,F10.5)')
+     &  '    - Local indices ib_i =',
+     &  ib_i(ib_n),'  ib_j(ib_n) = ', ib_j(ib_n)
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+
+      WRITE(msgBuf,'(A,F10.5,A,F10.5)')
+     &  '    - Global indices ib_i = ',
+     &  ib_i(ib_n),'   ib_j = ', ib_j(ib_n)
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif /* ICEBERG_DEBUG_ON */
 
 #ifdef ALLOW_ICEBERG_SURFACE_MELT
 C--   SURFACE MELT ROUTINES
       IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0)) 
-     &     CALL ICEBERG_SURFACE_MELT (ib_iT, ib_jT, ib_n, bi, bj, 
-     &                         myIter, myThid)
+     &     CALL ICEBERG_SURFACE_MELT (ib_n, 
+     &                        ib_n, bi, bj,  myIter, myThid)
 #endif
+
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_model_debug_level.gt.3) THEN
+       WRITE(msgBuf,'(A,I5)')
+     &  '|- After melting, ibFlag = ', ibFlag(ib_n)
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif /* ICEBERG_DEBUG_ON */
+
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_model_debug_level.gt.3) THEN
+       WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '|- Before advecting, ib_i= ', ib_i(ib_n),
+     &  ' ib_j = ', ib_j(ib_n)
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif /* ICEBERG_DEBUG_ON */
 
 #ifdef ALLOW_ICEBERG_ADVECTION
 C--   ICEBERG ADVECTION SCHEME
            IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0))
-     &     CALL ICEBERG_ADVECTION (ib_iT, ib_jT, 
-     &                             ib_n, bi, bj, myThid)
+     &     CALL ICEBERG_ADVECTION (ib_n, 
+     &                             bi, bj, myThid, myIter)
 #endif
+
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_model_debug_level.gt.3) THEN
+       WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '|- After advecting, ib_i= ', ib_i(ib_n),
+     &  ' ib_j = ', ib_j(ib_n)
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif /* ICEBERG_DEBUG_ON */
 
           ENDIF  ! Execute specific tiles
          ENDDO   ! ib_n
 
         ENDIF   ! if ib_Tot > 0
 
-        _BARRIER
-
        ENDDO   ! bj
       ENDDO   ! bi
 
+C Now that everyone has moved around and melted, we can
+C check the tiles to see if anyone has changed tiles
+      CALL ICEBERG_EXCHANGE_TILE ( myThid, myIter )
+
+C Once existing icebergs are happy, we can add new ones      
 #ifdef ALLOW_ICEBERG_CALVING
 C--   CALVE ICEBERGS
         CALL ICEBERG_CALVE ( myTime, myIter, myThid )
 #endif
 
+C After calving, we can make sure the head node knows about all
+C of the icebergs in the system
 #ifdef ALLOW_USE_MPI
 C--   EXCHANGE ICEBERG BETWEEN TILES (if MPI)
       IF (num_procs.GT.1) THEN
 C      Between tiles 
-       CALL ICEBERG_EXCHANGE_TILE ( myThid )
+       CALL ICEBERG_EXCHANGE_TILE_INFO ( myThid )
       ENDIF
 #endif
 
+C Finally, we can remove any icebergs that have melted
 C--   REMOVE MELTED ICEBERGS
       CALL ICEBERG_REMOVE ( myIter, myThid )
+
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_model_debug_level.ge.1) THEN
+      
+      WRITE(msgBuf,'(A)') '|- END ICEBERG MODEL'
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A,A)') '|------------------------------',
+     &  '--------------------------------------------------|'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif
 
       RETURN
       END

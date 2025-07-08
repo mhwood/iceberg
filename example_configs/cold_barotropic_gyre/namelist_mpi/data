@@ -1,0 +1,57 @@
+# Model parameters
+# Continuous equation parameters
+ &PARM01
+ tRef = 2
+ sRef = 32
+ viscAh=4.E2,
+ f0=1.E-4,
+ beta=1.E-11,
+ rhoConst=1000.,
+ gBaro=9.81,
+ rigidLid=.FALSE.,
+ implicitFreeSurface=.TRUE.,
+# momAdvection=.FALSE.,
+ tempStepping=.FALSE.,
+ saltStepping=.FALSE.,
+ useSingleCPUio=.TRUE.,
+ &
+
+# Elliptic solver parameters
+ &PARM02
+ cg2dTargetResidual=1.E-7,
+ cg2dMaxIters=1000,
+ &
+
+# Time stepping parameters
+ &PARM03
+ nIter0=1,
+ nTimeSteps=7201,
+ deltaT=1200.0,
+ pChkptFreq=31104000.0,
+ chkptFreq=15552000.0,
+ dumpFreq=0.0,
+ monitorFreq=0.,
+ monitorSelect=0,
+#-for longer run (3.0 yr):
+# nTimeSteps=77760,
+# monitorFreq=864000.,
+ dumpInitAndLast=.FALSE.,
+ &
+
+# Gridding parameters
+ &PARM04
+ usingCartesianGrid=.TRUE.,
+ delX=62*20.E3,
+ delY=62*20.E3,
+ xgOrigin=-20.E3,
+ ygOrigin=-20.E3,
+ delR=5000.,
+ &
+
+# Input datasets
+ &PARM05
+ bathyFile='bathy.bin'
+# zonalWindFile='windx_cosy.bin',
+#zonalWindFile='windx_siny.bin',
+# meridWindFile=,
+ &

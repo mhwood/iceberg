@@ -1,8 +1,8 @@
 C
 #include "ICEBERG_OPTIONS.h"
 
-      SUBROUTINE ICEBERG_ADVECTION (ib_iT, ib_jT, 
-     &       ib_n, bi, bj, myThid )
+      SUBROUTINE ICEBERG_ADVECTION (ib_n, 
+     &       bi, bj, myThid, myIter )
 
 C     ==================================================================
 C     MITberg V1.0 ICEBERG ADVECTION SCHEME
@@ -46,7 +46,7 @@ c
 #endif
 
 C     Routine arguements
-      INTEGER i, j, bi, bj, myThid
+      INTEGER i, j, bi, bj, myThid, myIter
       INTEGER ib_n
 
 C     Local arguments
@@ -54,8 +54,6 @@ C     Local arguments
       INTEGER ib_tstep
       _RL dist_i
       _RL dist_j
-      _RL ib_iT
-      _RL ib_jT
       INTEGER i1, j1
       INTEGER k
 
@@ -91,7 +89,6 @@ C     Seaice velocities
       _RL uvel_si_r
       _RL vvel_si_r
       _RL Vel_si_r
-
       _RL ib_SIheff
       _RL ib_SIarea
 
@@ -114,6 +111,23 @@ C    Forces
       _RL ib_FpV
       _RL ib_FrU
       _RL ib_FrV
+
+#ifdef ICEBERG_DEBUG_ON
+      _RL ib_dist_mU    ! existing momentum
+      _RL ib_dist_mV    
+      _RL ib_dist_aU    ! atmospheric drag
+      _RL ib_dist_aV
+      _RL ib_dist_iU    ! sea ice drag
+      _RL ib_dist_iV
+      _RL ib_dist_cU    ! coriolis
+      _RL ib_dist_cV
+      _RL ib_dist_pU    ! pressure gradient
+      _RL ib_dist_pV
+      _RL ib_dist_rU    ! wave radiation drag
+      _RL ib_dist_rV
+      _RL ib_dist_wU    ! water
+      _RL ib_dist_wV
+#endif
  
 C     Wave radiation coefficients
       _RL Lw
@@ -173,11 +187,6 @@ C     Misc
 C ***************************************************
 c     dist_i      distance moved in x-direction 
 c     dist_j      distance moved in y-direction
-c
-c     ib_iT       x position of iceberg (on tile)
-c     ib_jT       y position of iceberg (on tile)
-c     i1          integer of ib_iT
-c     j1          integer of ib_jT
 
 c     uvel_w   zonal ocean velocity at iceberg (m s-1)
 c     vvel_w   meridional ocean velocity at iceberg (m s-1)
@@ -258,15 +267,22 @@ C
 C ***************************************************************************
 
 
-#ifdef ICEBERG_DIAG_ON
-      WRITE(msgBuf,'(A)') 'ICEBERG DYNAMICS ROUTINE CALLED'
-      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-#endif
+
+#ifdef ICEBERG_DEBUG_ON
+        IF (ib_advection_debug_level.ge.1) THEN
+!       WRITE(msgBuf,'(A,A)') '|--------------------',
+!      & '----------------------------------------|'
+!        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+!      &                           SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A)') '|--- ICEBERG ADVECTION BEGIN DEBUG'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       ENDIF
+#endif 
 
 
-      i1 = INT(ib_iT)
-      j1 = INT(ib_jT)
+      i1 = INT(ib_i(ib_n))
+      j1 = INT(ib_j(ib_n))
 
 C     Calculate cumulative depth
       cumDepth(1)= 0.
@@ -276,7 +292,8 @@ C     Calculate cumulative depth
 
 C     Check to see if iceberg is grounded
 C     If true then DO NOT advect iceberg
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, R_low, varOUT,
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n),
+     &     R_low, varOUT,
      &                             0, bi, bj, myThid )
       ib_R_low = varOUT
 
@@ -321,6 +338,8 @@ C      Calculate number of levels iceberg penetrates.
          IF (ib_dft(ib_n).GE.cumDepth(k)
      &      .AND.ib_dft(ib_n).LT.cumDepth(k+1)) ib_nlvl = k
         ENDDO
+C      If using a single layer model, this doesn't make sense
+       IF (Nr.eq.1) ib_nlvl = 1
 
 C      Set force/velocity at each vertical level to Zero to be safe
         ib_FwU_z(:)  = 0. _d 0
@@ -332,12 +351,12 @@ C      Set force/velocity at each vertical level to Zero to be safe
 
 C      Get ocean velocity at each level
         DO k = 1,ib_nlvl
-         CALL ICEBERG_INTERP_LINEAR_3D ( ib_iT, ib_jT, k, uVel, varOUT,
-     &                             1, bi, bj, myThid )
+         CALL ICEBERG_INTERP_LINEAR_3D ( ib_i(ib_n), ib_j(ib_n), k, 
+     &                   uVel, varOUT, 1, bi, bj, myThid )
          uvel_w(k) = varOUT
 
-         CALL ICEBERG_INTERP_LINEAR_3D ( ib_iT, ib_jT, k, vVel, varOUT,
-     &                             2, bi, bj, myThid )
+         CALL ICEBERG_INTERP_LINEAR_3D ( ib_i(ib_n), ib_j(ib_n), k, 
+     &                           vVel, varOUT, 2, bi, bj, myThid )
          vvel_w(k) = varOUT
 
         ENDDO
@@ -349,11 +368,11 @@ C      Get ocean velocity at each level
 
 C     Single-level (surface) ocean advection
 
-      CALL ICEBERG_INTERP_LINEAR_3D ( ib_iT, ib_jT, 1, uVel, varOUT, 
-     &                             1, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_3D ( ib_i(ib_n), ib_j(ib_n), 1,
+     &                            uVel, varOUT, 1, bi, bj, myThid )
       uvel_w = varOUT   
-      CALL ICEBERG_INTERP_LINEAR_3D ( ib_iT, ib_jT, 1, vVel, varOUT,
-     &                             2, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_3D ( ib_i(ib_n), ib_j(ib_n), 1, 
+     &                           vVel, varOUT, 2, bi, bj, myThid )
       vvel_w = varOUT
 
       Vel_w = sqrt(uvel_w * uvel_w
@@ -362,15 +381,15 @@ C     Single-level (surface) ocean advection
 #endif
 
 C--   INTERPOLATE WIND
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, uWind, varOUT,
-     &                             1, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n),
+     &                            uWind, varOUT,  1, bi, bj, myThid )
       uvel_a = varOUT
       uvel_a = uvel_a * ibuWindScale
       IF (uvel_a.GT.ibMaxWind) uvel_a = ibMaxWind
       IF (uvel_a.LT.ibMaxWind*(-1.)) uvel_a = ibMaxWind*(-1.) 
 
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, vWind, varOUT,
-     &                             2, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_2D (ib_i(ib_n), ib_j(ib_n), 
+     &                            vWind, varOUT, 2, bi, bj, myThid )
       vvel_a = varOUT
       vvel_a = vvel_a * ibvWindScale
       IF (vvel_a.GT.ibMaxWind) vvel_a = ibMaxWind
@@ -383,17 +402,17 @@ C--   INTERPOLATE WIND
 #ifdef ALLOW_SEAICE
 C--  INTERPOLATE SEA ICE
       IF ( useSEAICE ) THEN
-       CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, UICE, varOUT,
-     &                             1, bi, bj, myThid )
+       CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n),
+     &                             UICE, varOUT, 1, bi, bj, myThid )
        uvel_si = varOUT
-       CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, VICE, varOUT,
-     &                             2, bi, bj, myThid )
+       CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), 
+     &                           VICE, varOUT,  2, bi, bj, myThid )
        vvel_si = varOUT
-       CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, HEFF, varOUT,
-     &                                 0, bi, bj, myThid )
+       CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n),
+     &                                HEFF, varOUT,  0, bi, bj, myThid )
        ib_SIheff = varOUT
-       CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, AREA, varOUT,
-     &                                 0, bi, bj, myThid )
+       CALL ICEBERG_INTERP_LINEAR_2D (ib_i(ib_n), ib_j(ib_n), 
+     &                                AREA, varOUT, 0, bi, bj, myThid )
        ib_SIarea = varOUT
 
        IF (ib_SIarea.LT.0.15) ib_SIheff = 0. _d 0  
@@ -408,27 +427,27 @@ C--  INTERPOLATE SEA ICE
 
  
 C     Interpolate coriolis force to iceberg location
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, fCori, varOUT,
-     &                             0, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), 
+     &                           fCori, varOUT,  0, bi, bj, myThid )
       ib_cori = varOUT
 
 C     Determine iceberg latitude
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, yc, varOUT,
-     &                                   0, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), 
+     &                                 yc, varOUT,  0, bi, bj, myThid )
       ib_lat = varOUT
 
 
 C     Interpolate grid spacing to iceberg
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, dxC, varOUT,
-     &                             0, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), 
+     &                           dxC, varOUT,  0, bi, bj, myThid )
       ib_dxC = varOUT
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, dyC, varOUT,
-     &                             0, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n),
+     &                            dyC, varOUT, 0, bi, bj, myThid )
       ib_dyC = varOUT
 
 C     Interpolate ocean water depth to iceberg location
-      CALL ICEBERG_INTERP_LINEAR_2D ( ib_iT, ib_jT, R_low, varOUT,
-     &                             0, bi, bj, myThid )
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), 
+     &                            R_low, varOUT, 0, bi, bj, myThid )
       ib_R_low = varOUT
 
 
@@ -925,7 +944,6 @@ C   --------------
      &         * hemis   
 
 
-
 C
 C--  PRESSURE GRADIENT FORCE
 C    -----------------------
@@ -984,9 +1002,9 @@ C--  COLLISION WITH COASTLINES
 C    -------------------------
 C
       IF (ibBounceCoast.EQ.1) THEN   ! Default is 0 (off). Override in data.iceberg
-       CALL ICEBERG_COASTLINE  (ib_iT, ib_jT, ib_n, ib_R_low, 
-     &                         varOUTu, varOUTv, collide,
-     &                         bi, bj, myThid )
+       CALL ICEBERG_COASTLINE  (ib_i(ib_n), ib_j(ib_n), 
+     &                    ib_n, ib_R_low, varOUTu, varOUTv, collide,
+     &                     bi, bj, myThid )
 
        IF (collide.EQ.1) THEN
         ib_FU = varOUTu   
@@ -1001,6 +1019,100 @@ C    ------------------------------------------------
 C
         ib_FU = ib_FU/ib_mass
         ib_FV = ib_FV/ib_mass
+
+#ifdef ICEBERG_DEBUG_ON
+
+      IF (ib_advection_debug_level.ge.3) THEN
+C     Compute all of the distance components
+      ib_dist_mU = (ib_uVel(ib_n) * (deltaT/deltaT_ice))
+      ib_dist_mV = (ib_vVel(ib_n) * (deltaT/deltaT_ice))
+      ib_dist_aU = (0.5 * ib_FaU * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_aV = (0.5 * ib_FaV * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_iU = (0.5 * ib_FiU * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_iV = (0.5 * ib_FiV * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_cU = (0.5 * ib_FcU * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_cV = (0.5 * ib_FcV * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_pU = (0.5 * ib_FpU * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_pV = (0.5 * ib_FpV * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_rU = (0.5 * ib_FrU * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_rV = (0.5 * ib_FrV * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_wU = (0.5 * ib_FwU * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+      ib_dist_wV = (0.5 * ib_FwV * (deltaT/deltaT_ice)**2)
+     &            / (ib_mass)
+
+         WRITE(msgBuf,'(A)')
+     &     '  |--- ICEBERG ADVECTION Distance Summary: '
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,I5,A,I5)')
+     &  '     |- Iceberg ID: ', ib_n, ', Iter: ',myIter
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '     |- Initial Location: i=', ib_i(ib_n), ', j= ',ib_j(ib_n)
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '     |- Initial Location: x=', ib_x(ib_n), ', y= ',ib_y(ib_n)
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '     |- Initial Velocity: u=',ib_uVel(ib_n),
+     & ', v= ',ib_vVel(ib_n)
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '     |- Water Velocity: u=',uvel_w, ', v= ',vvel_w
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10,A)')
+     &  '     |- Momentum :         (',ib_dist_mU,' m,',
+     &   ib_dist_mV,' m)'
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10,A)')
+     &  '     |- Water Drag :       (', ib_dist_wU,' m,',
+     &    ib_dist_wV,' m)'
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10,A)')
+     &  '     |- Air Drag :         (', ib_dist_aU,' m,',
+     &   ib_dist_aV,' m)'
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10,A)')
+     &  '     |- Wave Radiation:    (', ib_dist_rU,' m,',
+     &   ib_dist_rV,' m)'
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10,A)')
+     &  '     |- Ice Drag :         (', ib_dist_iU,' m,',
+     &   ib_dist_iV,' m)'
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10,A)')
+     &  '     |- Pressure Gradient: (',ib_dist_pU,' m,',
+     &   ib_dist_pV,' m)'
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+         WRITE(msgBuf,'(A,F20.10,A,F20.10,A)')
+     &  '     |- Coriolis :         (', ib_dist_cU,' m,',
+     &   ib_dist_cV, ' m)'
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif
 
 C
 C--  ICEBERG ADVECTION
@@ -1074,19 +1186,63 @@ C
        ib_i(ib_n) = ib_i(ib_n) + dist_i
        ib_j(ib_n) = ib_j(ib_n) + dist_j
 
-C   Icebergs at edge of model grid are flagged as melted
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_advection_debug_level.ge.3) THEN
+         WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '     |- Final Location: i=', ib_i(ib_n), ', j= ',ib_j(ib_n)
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+        WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '     |- Final Velocity: u=',ib_uVel(ib_n),
+     &  ', v= ',ib_vVel(ib_n)
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif
 
-        IF (ib_i(ib_n).LT.2.OR.ib_i(ib_n).GT.(sNx*nPx)-1)
-     &        ibFlag(ib_n) = 3
-        IF (ib_j(ib_n).LT.2.OR.ib_j(ib_n).GT.(sNy*nPy)-1)
-     &        ibFlag(ib_n) = 3
+C   Recalculate where the iceberg is located physically
+C      ib_iI=ib_i(ib_n) - (FLOOR((ib_i(ib_n)-1)/sNx)*sNx)
+C      ib_jI=ib_j(ib_n) - (FLOOR((ib_j(ib_n)-1)/sNy)*sNy)
+!       CALL ICEBERG_FIND_IJ (ib_n, ib_iT, ib_jT,   ! find local i,j
+!      &                                myIter, myThid)
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), XC, 
+     &                             varOUT,  0, 1, 1, myThid )
+      ib_x(ib_n) = varOUT
+      CALL ICEBERG_INTERP_LINEAR_2D ( ib_i(ib_n), ib_j(ib_n), YC, 
+     &                             varOUT,  0, 1, 1, myThid )
+      ib_y(ib_n) = varOUT
+
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_advection_debug_level.ge.3) THEN
+         WRITE(msgBuf,'(A,F20.10,A,F20.10)')
+     &  '     |- Final Location: x=', ib_x(ib_n), ', y= ',ib_y(ib_n)
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                    SQUEEZE_RIGHT, myThid )
+      ENDIF
+#endif
+
+
+C   When using exch2 here, we need to determine whether the iceberg
+C   has moved to a new tile. The existing melted flag will kill
+C   many icebergs that need to change tiles
+C      CALL ICEBERG_EXCHANGE_TILE ( ib_n, myThid, myIter )
+
 
       ENDDO   ! Here we end the main loop and forward timestepping
 
 
       ENDIF   ! end of advection (only iceberg not grounded will moved)
 
+#ifdef ICEBERG_DEBUG_ON
+       IF (ib_advection_debug_level.ge.1) THEN
+       WRITE(msgBuf,'(A)') '|--- ICEBERG ADVECTION END DEBUG'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       ENDIF
+#endif 
+
 #endif /* ALLOW_ICEBERG_ADVECTION */
 
       RETURN
+
       END

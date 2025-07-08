@@ -1,0 +1,27 @@
+# *********************
+# Iceberg Data
+# *********************
+
+ &ICEBERG_PARM01
+ CalvingFile = 'calving_locations.txt',
+ ib_write_freq = 86400,
+ ib_debug_level = 11,
+ submergedMeltBackgroundVelFloor = 0.1,
+ deltaT_ice = 1,
+ /
+
+ &ICEBERG_PARM02
+ /
+
+ &ICEBERG_DIAGS
+ /
+
+ &ICEBERG_DEBUG
+ ib_model_debug_level = 10
+ ib_advection_debug_level = 3
+ ib_surface_melt_debug_level = 3
+ ib_submerged_melt_debug_level = 0
+ ib_calving_debug_level = 3
+ ib_exchange_info_debug_level = 3
+ ib_exchange_tile_debug_level = 4
+ /

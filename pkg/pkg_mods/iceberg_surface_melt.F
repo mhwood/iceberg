@@ -1,7 +1,7 @@
 c
 #include "ICEBERG_OPTIONS.h"
 
-      SUBROUTINE ICEBERG_SURFACE_MELT ( ib_iT,ib_jT, ib_n, bi, bj, 
+      SUBROUTINE ICEBERG_SURFACE_MELT ( ib_n, bi, bj, 
      &                            myIter, myThid)
 
 C     ==================================================================
@@ -246,11 +246,13 @@ C   ***************************************************************************
 !       STOP
 ! #endif
 
-#ifdef ICEBERG_DIAG_ON
-      WRITE(msgBuf,'(A)') 'ICEBERG THERMODYNAMICS CALLED'
-      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-#endif
+#ifdef ICEBERG_DEBUG_ON
+       IF (ib_surface_melt_debug_level.ge.1) THEN
+       WRITE(msgBuf,'(A)') '|--- ICEBERG SURFACE MELT BEGIN DEBUG'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       ENDIF
+#endif 
 
 C     Calculate cumulative depth
       cumDepth(1)= 0.
@@ -527,12 +529,17 @@ C     Otherwise, its a snapshot
             ENDIF
       ENDIF
 
-#ifdef ICEBERG_DIAG_ON
-      WRITE(msgBuf,'(A,I5,A,I5,A,F20.15,A)') 
-     &     'At iter= ',myIter,' on iceberg number ',ib_n,
-     &     ', solar iceberg melt = ',ib_Msolar*86400,' m/day'
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_surface_melt_debug_level.ge.2) THEN
+       WRITE(msgBuf,'(A,A,I5)') '  |--- ICEBERG SURFACE ',
+     & 'MELT SUMMARY at iter= ',myIter
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+      WRITE(msgBuf,'(A,F20.10,A)') 
+     &     '     |- solar iceberg melt = ',ib_Msolar*86400,' m/day'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                     SQUEEZE_RIGHT, myThid )
+      ENDIF
 #endif
 
 #endif /* ALLOW_SOLAR_MELT */
@@ -592,12 +599,14 @@ C     Otherwise, its a snapshot
             ENDIF
       ENDIF
 
-#ifdef ICEBERG_DIAG_ON
-      WRITE(msgBuf,'(A,I5,A,I5,A,F10.5,A)') 
-     &   'At iter= ',myIter,' on iceberg number ',ib_n,
-     &  ', atmospheric iceberg melt = ',ib_Mforced_a*86400,' m/day'
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_surface_melt_debug_level.ge.2) THEN
+      WRITE(msgBuf,'(A,F20.10,A)') 
+     &     '     |- atmospheric iceberg melt = ',
+     & ib_Mforced_a*86400,' m/day'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                     SQUEEZE_RIGHT, myThid )
+      ENDIF
 #endif
 
 #endif /* ALLOW_ATM_MELT */
@@ -671,12 +680,14 @@ C     Otherwise, its a snapshot
            ENDIF
         ENDIF
 
-#ifdef ICEBERG_DIAG_ON
-        WRITE(msgBuf,'(A,I5,A,I5,A,F20.15,A)') 
-     &     'At iter= ',myIter,' on iceberg number ',ib_n,
-     &     ', wave erosion melt = ',ib_Mwave*86400,' m/day'
-        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+#ifdef ICEBERG_DEBUG_ON
+      IF (ib_surface_melt_debug_level.ge.2) THEN
+      WRITE(msgBuf,'(A,F20.10,A)') 
+     &     '     |- wave erosion = ',
+     & ib_Mwave*86400,' m/day'
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                     SQUEEZE_RIGHT, myThid )
+      ENDIF
 #endif
 
 #endif /* ALLOW_WAVE_EROSION */
@@ -781,6 +792,14 @@ C     --------------------------------------
 
 C     FLAG MELTED ICEBERGS FOR REMOVAL
       IF (meltFlag.EQ.1) ibFlag (ib_n) = 3
+
+#ifdef ICEBERG_DEBUG_ON
+       IF (ib_surface_melt_debug_level.ge.1) THEN
+       WRITE(msgBuf,'(A)') '|--- ICEBERG SURFACE MELT END DEBUG'
+       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+       ENDIF
+#endif 
 
 #endif /* ALLOW_ICEBERG_SURFACE_MELT */
 
