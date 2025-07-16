@@ -75,6 +75,7 @@ c Alan Condron, UMass Amherst, 2015
       CHARACTER*128 ib_melt_profile_filename
       CHARACTER*128 ib_solar_melt_filename
       CHARACTER*128 ib_atm_melt_filename
+      CHARACTER*128 ib_wave_melt_filename
 
       COMMON /ICEBERG_DIAGS_RL/
      & ib_melt_profile_period,
