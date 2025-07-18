@@ -31,7 +31,7 @@ def mapping_to_cores(arr, nrow, ncol, nX, nY, exch2: bool = False):
                 tmp_distance = np.sqrt((arr[coord,1] - core[0]) ** 2 + (arr[coord,2] - core[1]) ** 2)
                 if tmp_distance < distance:
                     distance = tmp_distance
-                    tmp_coord = [coord, i, arr[coord,1], arr[coord,2]]
+                    tmp_coord = [coord, i, arr[coord,1] - core[0], arr[coord,2] - core[1]]
         new_location_arr.append(tmp_coord)
     
     return np.array(new_location_arr)
