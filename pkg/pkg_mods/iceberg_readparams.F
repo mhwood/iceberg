@@ -94,7 +94,7 @@ C     Local arguements
      &   ib_atm_melt_period,
      &   ib_wave_melt_period
 
-ifdef ALLOW_ICEBERG_DEBUG
+#ifdef ALLOW_ICEBERG_DEBUG
       NAMELIST /ICEBERG_DEBUG/
      &  ib_model_debug_level,
      &  ib_advection_debug_level,
