@@ -136,10 +136,10 @@ def get_terminal_output(mitgrid_input, gate_input):
 #
 #     process.wait()
 
-def run_script(progress_tracker):
+def run_script(progress_tracker, schedule_length):
     print('Starting process:')
     process = subprocess.Popen(
-        ['python3', 'processing_pipeline.py'],
+        ['python3', 'processing_pipeline.py', '-l', f'{schedule_length}'],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -163,6 +163,7 @@ def run_script(progress_tracker):
     Output('moving-to-viz', 'disabled'),
     Output('interval-component', 'disabled'),
     Input("show-output-button", "n_clicks"),
+    Input('length-input', 'value'),
     progress=[
         Output('process-output-store', 'data'),
     ],
@@ -172,16 +173,20 @@ def run_script(progress_tracker):
     ],
     prevent_initial_call=True
 )
-def start_process(set_progress, n_clicks_button):
+def start_process(set_progress, n_clicks_button, length_input):
     # DEBUG PRINT: Check if the callback is even triggered
     # print(f"--- DEBUG: start_process callback triggered. n_clicks_button: {n_clicks_button} ---")
 
     # DEBUG PRINT: Check if run_script is about to be called
-    print("--- DEBUG: Calling run_script ---")
+    trigger = ctx.triggered_id
+    if trigger == 'show-output-button':
+        print("--- DEBUG: Calling run_script ---")
 
-    output = run_script(set_progress)
-    print(f"--- DEBUG: Done running script")
-    return False, True
+        output = run_script(set_progress, length_input)
+        print(f"--- DEBUG: Done running script")
+        return False, True
+    else:
+        return True, True
 
 
 

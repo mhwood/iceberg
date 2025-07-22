@@ -67,9 +67,11 @@ class GlacierIterator:
 
 class DataCollector:
     def __init__(self):
-
-        self.df = pd.read_csv(os.path.join(input_dir, 'glacier_data.csv'))
-        self.df['gate_no'] = self.df['name'].apply(lambda x: int(x.split("_")[0]))
+        if os.path.exists(os.path.join(input_dir, 'glacier_data.csv')):
+            self.df = pd.read_csv(os.path.join(input_dir, 'glacier_data.csv'))
+            self.df['gate_no'] = self.df['name'].apply(lambda x: int(x.split("_")[0]))
+        else:
+            self.df = pd.DataFrame(columns=['x','y','row','col','name','index','mapped_row','mapped_col'])
         self.iterator = GlacierIterator(self.df['gate_no'].tolist())
         self.flux_df = import_flux_data()
 

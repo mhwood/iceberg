@@ -397,9 +397,17 @@ if __name__ == "__main__":
         help="Path to the input folder containing necessary files data"
     )
 
+    parser.add_argument(
+        "-l", "--s_length",
+        type=int,
+        required=False,
+        default=100000,
+        help="Length of calving schedule"
+    )
     args = parser.parse_args()
 
     input_folder = args.input_folder
+    schedule_length = args.s_length
 
     print(f"Using input folder: {input_folder}")
 
@@ -448,7 +456,7 @@ if __name__ == "__main__":
     print(f'    - Maximum number of icebergs in any year: {max_iceberg_count}')
 
     years = [1992] # Change to generate more or change year(s)
-    schedule_length = 100000
+    # schedule_length = 10000
 
     # glacier_names = ['129_UPERNAVIK_ISSTROM_N']
     print(f'    - Identified {len(glacier_names)} calving locations')
