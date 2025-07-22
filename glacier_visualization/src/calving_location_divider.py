@@ -4,22 +4,27 @@ import seaborn as sb
 import os
 import argparse
 
-def mapping_to_cores(arr, nrow, ncol, nX, nY, exch2: bool = False):
+def calculate_dividers(nrow, ncol, nX, nY):
     dX = ncol / nX
     dY = nrow / nY
 
+    return dX, dY
+
+def mapping_to_cores(arr, nrow, ncol, nX, nY, exch2: bool = False):
+    dX, dY = calculate_dividers(nrow, ncol, nX, nY)
+
     core_coords = []
 
-    for i in range(nY):
-        for j in range(nX):
+    for i in range(nX):
+        for j in range(nY):
             core_coords.append([dX * i, j * dY])
     
     core_coords = np.array(core_coords)
     if exch2:
-        sort_indices = np.lexsort((core_coords[:,1], core_coords[:,0]))
+        sort_indices = np.lexsort((core_coords[:,0], core_coords[:,1]))
         core_coords = core_coords[sort_indices]
     else:
-        sort_indices = np.lexsort((core_coords[:,0], core_coords[:,1]))
+        sort_indices = np.lexsort((core_coords[:,1], core_coords[:,0]))
         core_coords = core_coords[sort_indices]
 
     new_location_arr = []
@@ -27,34 +32,40 @@ def mapping_to_cores(arr, nrow, ncol, nX, nY, exch2: bool = False):
         distance = 1000000000
         tmp_coord = []
         for i, core in enumerate(core_coords):
-            if (arr[coord,1] >= core[0] and arr[coord,2] >= core[1]): #Ensure in the first quartet of core's origin
-                tmp_distance = np.sqrt((arr[coord,1] - core[0]) ** 2 + (arr[coord,2] - core[1]) ** 2)
+            if (arr[coord,2] >= core[0] and arr[coord,1] >= core[1]): #Ensure in the first quartet of core's origin. IMPORTANT: x first then y to match mathematical order
+                tmp_distance = np.sqrt((arr[coord,2] - core[0]) ** 2 + (arr[coord,1] - core[1]) ** 2)
                 if tmp_distance < distance:
                     distance = tmp_distance
-                    tmp_coord = [coord, i, arr[coord,1] - core[0], arr[coord,2] - core[1]]
+                    tmp_coord = [coord, i, arr[coord,1] - core[1], arr[coord,2] - core[0]] # switch placement of x and y to match file format
         new_location_arr.append(tmp_coord)
-    
+    debug_visualization(new_location_arr, dX, dY, core_coords)
     return np.array(new_location_arr)
     
-def debug_visualization(arr):
-    new_location_arr = np.array(new_location_arr).astype(int)
+def debug_visualization(arr, dX, dY, core_locs):
+
+    arr = np.array(arr).astype(int)
+    tmp_arr = []
+    for coord in range(len(arr)):
+        core = arr[coord, 1]
+        tmp_arr.append([core, arr[coord, 3] + core_locs[core, 0], arr[coord, 2] + core_locs[core, 1]])
+    new_location_arr = np.array(tmp_arr)
 
     plt.xlim(0, ncol)
     plt.ylim(0, nrow)
     sb.set_palette("bright")
     ax = sb.scatterplot(
-        y=new_location_arr[:,1],
-        x=new_location_arr[:,2],
+        x=new_location_arr[:,1],
+        y=new_location_arr[:,2],
         hue=new_location_arr[:,0],
         palette="bright"
     )
 
     for i in range(1, nY):
-        ax.axhline(y=dX*i, color='black')
+        ax.axhline(y=dY*i, color='black')
     for i in range(1, nX):
-        ax.axvline(x=dY*i, color='black')
-    
-    ax.show()
+        ax.axvline(x=dX*i, color='black')
+
+    plt.savefig("divider_debug.png")
 
 def write_calving_location_file(output_path, output_table):
     output = ''
@@ -141,3 +152,4 @@ if __name__ == '__main__':
         new_arr = mapping_to_cores(arr, nrow, ncol, nX, nY, False)
     
     write_calving_location_file(output_path, new_arr)
+    # debug_visualization(new_arr, nrow, ncol, nX, nY)
