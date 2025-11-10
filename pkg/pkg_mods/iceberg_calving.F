@@ -58,6 +58,10 @@ C     local arguements
       _RL calving_time
       _RL iceberg_width
 
+#ifndef ALLOW_USE_MPI
+      INTEGER, PARAMETER :: mpiMyId = 0
+#endif
+
 C      NumSecYear :: Number of seconds in a year
 C      ib_R_low     :: water depth at calving location
 
@@ -92,6 +96,9 @@ C     calving location, and if so do it.
 C     Loop through the calving locations
       DO n = 1, CALVE_LOCS 
 
+C     Check to see if this calving location is one this processor
+      IF ( CalvingLocations(n,2).eq.mpiMyId ) THEN
+
 C     Loop through the schedule length
       DO i = 1, SCHEDULE_LEN
          calving_time = IcebergCalvingSchedule(i,1,n)
@@ -104,7 +111,7 @@ C     &                    SQUEEZE_RIGHT, myThid )
 C        Check if its time to calve
          IF ((calving_time.ge.myTime).and.
      &         (ABS(calving_time-myTime)<deltaT)
-     &            .and.(iceberg_width.gt.10)) THEN ! time to calve
+     &            .and.(iceberg_width.gt.1)) THEN ! time to calve
 
 #ifdef ICEBERG_DEBUG_ON
        IF (ib_calving_debug_level.ge.2) THEN
@@ -122,7 +129,7 @@ C       Find maximum iceberg ID (to avoid duplicating icebergs)
         
 C       Assign information to each calved iceberg
         ib_n = ib_Tot + 1
-        ib_id(ib_n) = max_ib_id + 1 !old code: ib_n + IDoffset
+        ib_id(ib_n) = n*NUMBER_OF_BERGS+ib_n  ! old code: max_ib_id + 1 ! older code: ib_n + IDoffset
         ib_source (ib_n) = CalvingLocations(n,1) ! iceberg source ID
         ib_tile  (ib_n) = CalvingLocations(n,2)  ! iceberg tile ID
         ib_i(ib_n) = CalvingLocations(n,3)       ! i-pos 
@@ -216,6 +223,7 @@ C   Now increment Total Number of icebergs
 
       ENDIF ! time to calve
       ENDDO ! Max number of bergs in schedule
+      ENDIF ! Calving location on this processor
       ENDDO ! NumCalvingLoc
 
 #ifdef ICEBERG_DEBUG_ON

@@ -7,7 +7,7 @@ C     ==================================================================
 c     MITberg V2.0 ICEBERG EXCHANGE TILE
 c     ==================================================================
 C
-C     o Exchange icebergs between tiles when using EXCH2
+C     o Exchange icebergs between tiles when using MPI or EXCH2
 C
 C     ==================================================================
 
@@ -173,7 +173,7 @@ C        Keep track of source and target procs
 
 #ifdef ALLOW_EXCH2
 C With exch2, we need to get the target tile coordinates
-C usinf the exch2 routines
+C using the exch2 routines
          CALL MPI_CART_COORDS( mpiComm, targetProc, 2,
      &    mpiGridSpec, mpiRC )
 
@@ -344,7 +344,7 @@ C Sanity check: loop through and print out where the exchange_list is ne -1
          DO ib_n=1,NUMBER_OF_BERGS
             IF (exchange_list(ib_n,1).NE.-1) THEN
               WRITE(msgBuf,'(A,I5,A,I5,A,I5)')
-     &  '      |--- Iceberg ', ib_n,
+     &  '      |--- Iceberg ID ', ib_id(ib_n),
      &  ' is being exchanged from proc ', exchange_list(ib_n,1),
      &  ' to proc ', exchange_list(ib_n,2)
               CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,

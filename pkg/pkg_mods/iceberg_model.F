@@ -92,7 +92,7 @@ C-- contributes to FW and Heat flux inside ICEBERG_SUBMERGED_MELT
         IF (ib_Tot.GT.0) THEN                          ! if icebergs in system
          DO ib_n=1,ib_Tot
 
-C          Dpm't do this here every time because icebergs can be double counted            
+C          Don't do this here every time because icebergs can be double counted            
 C          CALL ICEBERG_FIND_TILE (ib_n, myIter, myThid)! Find iceberg tile ID
 
           IF (proc_id.EQ.ib_Tile(ib_n)) THEN           ! Execute specific tiles
@@ -108,13 +108,7 @@ C     &                                myIter, myThid)
 
       WRITE(msgBuf,'(A,F10.5,A,F10.5)')
      &  '    - Local indices ib_i =',
-     &  ib_i(ib_n),'  ib_j(ib_n) = ', ib_j(ib_n)
-       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
-     &                    SQUEEZE_RIGHT, myThid )
-
-      WRITE(msgBuf,'(A,F10.5,A,F10.5)')
-     &  '    - Global indices ib_i = ',
-     &  ib_i(ib_n),'   ib_j = ', ib_j(ib_n)
+     &  ib_i(ib_n),'  ib_j = ', ib_j(ib_n)
        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
      &                    SQUEEZE_RIGHT, myThid )
       ENDIF

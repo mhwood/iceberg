@@ -35,24 +35,24 @@ C     myThid :: my Thread Id number
 
 C     == Local variables ==
 C     IcebergOutput :: store all iceberg data for writing out
-      CHARACTER(10) iterStr
-      CHARACTER*(MAX_LEN_MBUF) mystring
-      CHARACTER(:), allocatable :: ib_name
+      CHARACTER(10) mystring
+      CHARACTER(36) ib_name
       CHARACTER*(MAX_LEN_MBUF) suff
       LOGICAL  DIFFERENT_MULTIPLE
       EXTERNAL DIFFERENT_MULTIPLE
-      CHARACTER*(MAX_LEN_MBUF * 2) msgBuf
+      CHARACTER*(MAX_LEN_MBUF) msgBuf
       INTEGER i, j, k, bi, bj
       LOGICAL dumpFiles
       INTEGER mUnit
       _RL IcebergOutput(NUMBER_OF_BERGS,17)
       INTEGER IBOutSize
+      INTEGER ib_n
 
 #ifdef ALLOW_PROFILE_OUTPUT
       _RL profileOutput(NUMBER_OF_BERGS,2)
-      character(:), allocatable :: pf_name
+      CHARACTER(10) mystring3
+      CHARACTER(38) pf_name
       INTEGER PfOutSize
-      INTEGER ib_n
 #endif
 
 #ifdef WRITE_ICEBERG_DATA
@@ -87,8 +87,7 @@ C     If its time to write out then:
        IF (dumpFiles) THEN
         IF (ib_Tot.GT.0) THEN
          WRITE (mystring,'(I10.10)') myIter
-         ib_name = trim(ib_iceberg_filename) // '.' // 
-     &     trim(mystring) // '.bin'
+         ib_name = 'diags/iceberg/iceberg.' // mystring // '.bin'
          _BARRIER
          WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', ib_name
          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -115,6 +114,33 @@ C     Gather iceberg data in to one array for writing
          IcebergOutput(:,15) = ib_source(:) ! calving source ID
          IcebergOutput(:,16) = ib_scale(:)  ! #bergs 1 iceberg equals
          IcebergOutput(:,17) = calve_slab_counter(:) ! calve slab counter
+
+#ifdef ICEBERG_DEBUG_ON
+      
+       IF ( iAmDoingIO ) THEN
+        IF (ib_exchange_info_debug_level.ge.5) THEN
+        WRITE(msgBuf,'(A,A)') '|- SUMMARY OF ICEBERG', 
+     &  ' INFO KNOWN BY PROC AT OUTPUT:'
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &      SQUEEZE_RIGHT, myThid )
+C      Print the full iceberg information on proc 0
+      DO ib_n=1,ib_Tot
+      WRITE(msgBuf,'(A,I7,A,F10.5,A,I5,A,F10.5,A,
+     &               F10.5,A,F20.5,A,F20.5)')
+     &   '|   - Iceberg ID: ', ib_id(ib_n),
+     &   ' Source: ', ib_source(ib_n),
+     &   ' Tile: ', ib_Tile(ib_n),
+     &   ' i: ', ib_i(ib_n),
+     &   ' j: ', ib_j(ib_n),
+     &   ' x: ', ib_x(ib_n),
+     &   ' y: ', ib_y(ib_n)
+         CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &                           SQUEEZE_RIGHT, myThid )
+      ENDDO
+      ENDIF
+      ENDIF
+
+#endif /* ICEBERG_DEBUG_ON */
 
 C-    Assign a free unit number as the I/O channel for this subroutine
          CALL MDSFINDUNIT( mUnit, myThid )
@@ -267,9 +293,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-             WRITE(iterStr, '(I10.10)') myIter
-            pf_name = trim(ib_melt_profile_filename) // '.' // 
-     &       iterStr // '.bin'
+            WRITE (pf_name,'(A,A,I10.10,A)') 
+     &            ib_melt_profile_filename(1:23),'.',
+     &            myIter, '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -334,9 +360,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE(iterStr, '(I10.10)') myIter
-            pf_name = trim(ib_solar_melt_filename) // '.' // 
-     &       iterStr // '.bin'
+            WRITE (pf_name,'(A,A,I10.10,A)') 
+     &            ib_solar_melt_filename(1:23),'.',
+     &            myIter, '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -396,9 +422,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE(iterStr, '(I10.10)') myIter
-            pf_name =  trim(ib_atm_melt_filename) // '.' // 
-     &       iterStr // '.bin'
+            WRITE (pf_name,'(A,A,I10.10,A)') 
+     &            ib_atm_melt_filename(1:23),'.',
+     &            myIter, '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -458,9 +484,9 @@ C   Check if its time to write output
 
 C     If its time to write out then:
             IF (dumpFiles) THEN
-            WRITE(iterStr, '(I10.10)') myIter
-            pf_name = trim(ib_wave_melt_filename) // '.' // 
-     &       iterStr // '.bin'
+            WRITE (pf_name,'(A,A,I10.10,A)') 
+     &            ib_wave_melt_filename(1:23),'.',
+     &            myIter, '.bin'
             _BARRIER
             WRITE(msgBuf,'(2A)') 'ICEBERG: WRITING ', pf_name
             CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,

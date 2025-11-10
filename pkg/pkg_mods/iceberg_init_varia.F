@@ -42,7 +42,7 @@ C      CALL ICEBERG_SUMMARY (myThid)
 
 C     Set various global iceberg model parameters to zero    
       ib_Tot                =  0
-      ib_tile(:)            =  0
+      ib_tile(:)            =  -1
       ib_i(:)               =  0. _d 0
       ib_j(:)               =  0. _d 0
       ib_wth(:)             = 0. _d 0

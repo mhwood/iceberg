@@ -32,11 +32,12 @@ c Alan Condron, UMass Amherst, 2015
       _RL delta_z(NUMBER_OF_BERGS,Nr)
 #ifdef ALLOW_USE_MPI
       INTEGER exchange_list(NUMBER_OF_BERGS, 2) ! source and target procs
+      INTEGER ib_Tot_global(nPx*nPy)
 #endif /* ALLOW_USE_MPI */
 
       COMMON /ICEBERG_PARAM003/
      &  ib_id, ib_Tile, ibFlag, 
-     &  ib_Tot, 
+     &  ib_Tot,
      &  ib_i, ib_j,
      &  ib_x, ib_y,
      &  ib_uVel, ib_vVel,
@@ -51,7 +52,7 @@ c Alan Condron, UMass Amherst, 2015
      &  mProf, 
      &  FwFlux, HeatFlux,
 #ifdef ALLOW_USE_MPI
-     &  exchange_list,
+     &  exchange_list, ib_Tot_global,
 #endif /* ALLOW_USE_MPI */
      &  delta_z
 
