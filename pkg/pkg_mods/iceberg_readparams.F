@@ -142,7 +142,7 @@ C     Set default values for NAMELIST ICEBERG_PARM01
       TairIncRate     = 0. _d 0
       ScourDepth      = 0. _d 0
       submergedMeltBackgroundVelFloor = 0.001
-      useIcebergPickup = .FALSE.
+      useIcebergPickup = .TRUE.
       ib_debug_level  = 1
 
 
