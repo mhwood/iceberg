@@ -118,7 +118,7 @@ C     &                                myIter, myThid)
 C--   SURFACE MELT ROUTINES
       IF ((ibFlag(ib_n).NE.3).and.(ib_thk(ib_n).gt.0)) 
      &     CALL ICEBERG_SURFACE_MELT (ib_n, 
-     &                        ib_n, bi, bj,  myIter, myThid)
+     &                        bi, bj,  myIter, myThid)
 #endif
 
 #ifdef ICEBERG_DEBUG_ON
